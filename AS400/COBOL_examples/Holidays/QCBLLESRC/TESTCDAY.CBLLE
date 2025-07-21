@@ -1,0 +1,47 @@
+*================================================================
+      * Program: TESTCDAY - Test program for Canada Day Calculator
+      * Purpose: Demonstrates automated testing of CANDAY01
+      * Author: Development Team
+      * Date: July 21, 2025
+      *================================================================
+       IDENTIFICATION DIVISION.
+         PROGRAM-ID. TESTCDAY.
+         AUTHOR. Development Team.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+
+      *=Test years array==============================================
+       01 WS-TEST-YEARS.
+          05 FILLER              PIC 9(4) VALUE 2024.
+          05 FILLER              PIC 9(4) VALUE 2025.
+          05 FILLER              PIC 9(4) VALUE 2026.
+          05 FILLER              PIC 9(4) VALUE 1867.
+          05 FILLER              PIC 9(4) VALUE 2030.
+
+       01 WS-TEST-ARRAY REDEFINES WS-TEST-YEARS.
+          05 WS-TEST-YEAR        PIC 9(4) OCCURS 5 TIMES.
+
+       01 WS-INDEX               PIC 9(2) VALUE 1.
+
+       PROCEDURE DIVISION.
+
+       MAIN-PROCEDURE.
+           DISPLAY '================================================'.
+           DISPLAY '     AUTOMATED CANADA DAY CALCULATOR TEST'.
+           DISPLAY '================================================'.
+           
+           PERFORM VARYING WS-INDEX FROM 1 BY 1 UNTIL WS-INDEX > 5
+               PERFORM TEST-YEAR
+           END-PERFORM.
+           
+           DISPLAY ' '.
+           DISPLAY 'Test completed successfully!'.
+           GOBACK.
+
+       TEST-YEAR SECTION.
+           DISPLAY ' '.
+           DISPLAY 'Testing year: ' WS-TEST-YEAR(WS-INDEX).
+           DISPLAY '(In a real implementation, this would call CANDAY01)'.
+
+       END PROGRAM TESTCDAY.

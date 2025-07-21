@@ -1,0 +1,160 @@
+*================================================================
+      * Program: CANDAY01 - Canada Day Calculator
+      * Purpose: Determines what day of the week Canada Day (July 1st)
+      *          falls on for any given year (historical or future)
+      * Author: Development Team
+      * Date: July 21, 2025
+      *================================================================
+       IDENTIFICATION DIVISION.
+         PROGRAM-ID. CANDAY01.
+         AUTHOR. Development Team.
+         DATE-WRITTEN. July 21, 2025.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+         DECIMAL-POINT IS COMMA.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+
+      *=Input year from user===========================================
+       01 WS-INPUT-YEAR          PIC 9(4) VALUE ZEROS.
+       01 WS-INPUT-YEAR-DISPLAY  PIC Z(4).
+
+      *=Date calculation fields=======================================
+       01 WS-CANADA-DATE.
+          05 WS-YEAR             PIC 9(4).
+          05 WS-MONTH            PIC 9(2) VALUE 07.
+          05 WS-DAY              PIC 9(2) VALUE 01.
+
+      *=Day of week calculation fields================================
+       01 WS-DAY-OF-WEEK         PIC 9(1).
+       01 WS-DAY-NAME            PIC X(9).
+
+      *=Date manipulation fields======================================
+       01 WS-DATE-NUMERIC        PIC 9(8).
+       01 WS-DATE-FORMATTED      PIC X(10).
+
+      *=Day name table================================================
+       01 WS-DAY-TABLE.
+          05 FILLER              PIC X(9) VALUE 'Sunday   '.
+          05 FILLER              PIC X(9) VALUE 'Monday   '.
+          05 FILLER              PIC X(9) VALUE 'Tuesday  '.
+          05 FILLER              PIC X(9) VALUE 'Wednesday'.
+          05 FILLER              PIC X(9) VALUE 'Thursday '.
+          05 FILLER              PIC X(9) VALUE 'Friday   '.
+          05 FILLER              PIC X(9) VALUE 'Saturday '.
+
+       01 WS-DAY-NAMES REDEFINES WS-DAY-TABLE.
+          05 WS-DAY-ENTRY        PIC X(9) OCCURS 7 TIMES.
+
+      *=Error handling fields=========================================
+       01 WS-ERROR-FLAG          PIC X(1) VALUE 'N'.
+       01 WS-CONTINUE-FLAG       PIC X(1) VALUE 'Y'.
+
+      *=Display formatting fields====================================
+       01 WS-DISPLAY-LINE        PIC X(80).
+
+       PROCEDURE DIVISION.
+
+       MAIN-PROCEDURE.
+           DISPLAY ' '.
+           DISPLAY '================================================'.
+           DISPLAY '        CANADA DAY CALCULATOR'.
+           DISPLAY '    What day does Canada Day fall on?'.
+           DISPLAY '================================================'.
+           DISPLAY ' '.
+
+           PERFORM UNTIL WS-CONTINUE-FLAG = 'N'
+               PERFORM GET-YEAR-INPUT
+               IF WS-ERROR-FLAG = 'N'
+                   PERFORM CALCULATE-DAY-OF-WEEK
+                   PERFORM DISPLAY-RESULT
+               END-IF
+               PERFORM ASK-CONTINUE
+           END-PERFORM.
+
+           DISPLAY ' '.
+           DISPLAY 'Thank you for using Canada Day Calculator!'.
+           GOBACK.
+
+       GET-YEAR-INPUT SECTION.
+           MOVE 'N' TO WS-ERROR-FLAG.
+           DISPLAY ' '.
+           DISPLAY 'Enter a year (1600-3000): ' WITH NO ADVANCING.
+           ACCEPT WS-INPUT-YEAR.
+
+      *=Validate year range===========================================
+           IF WS-INPUT-YEAR < 1600 OR WS-INPUT-YEAR > 3000
+               DISPLAY 'Error: Please enter a year between 1600 and 3000'
+               MOVE 'Y' TO WS-ERROR-FLAG
+           ELSE
+               MOVE WS-INPUT-YEAR TO WS-YEAR
+           END-IF.
+
+       CALCULATE-DAY-OF-WEEK SECTION.
+      *=Build date in YYYYMMDD format=================================
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+
+      *=Use intrinsic function to get day of week=====================
+      *=1=Monday, 2=Tuesday, ..., 7=Sunday===========================
+           COMPUTE WS-DAY-OF-WEEK = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+
+      *=Adjust for our table (1=Sunday, 2=Monday, etc.)===============
+           IF WS-DAY-OF-WEEK = 7
+               MOVE 1 TO WS-DAY-OF-WEEK
+           ELSE
+               ADD 1 TO WS-DAY-OF-WEEK
+           END-IF.
+
+      *=Get day name from table=======================================
+           MOVE WS-DAY-ENTRY(WS-DAY-OF-WEEK) TO WS-DAY-NAME.
+
+       DISPLAY-RESULT SECTION.
+           MOVE WS-INPUT-YEAR TO WS-INPUT-YEAR-DISPLAY.
+           
+           DISPLAY ' '.
+           DISPLAY '================================================'.
+           STRING 'Canada Day (July 1, ' DELIMITED BY SIZE
+                  WS-INPUT-YEAR-DISPLAY DELIMITED BY SIZE
+                  ') falls on a ' DELIMITED BY SIZE
+                  WS-DAY-NAME DELIMITED BY SIZE
+                  INTO WS-DISPLAY-LINE
+           END-STRING.
+           DISPLAY WS-DISPLAY-LINE.
+           DISPLAY '================================================'.
+
+      *=Display additional information================================
+           DISPLAY ' '.
+           DISPLAY 'Fun Facts:'.
+           IF WS-DAY-NAME = 'Saturday ' OR WS-DAY-NAME = 'Sunday   '
+               DISPLAY '- Canada Day is on a weekend! Perfect for celebrations!'
+           ELSE
+               DISPLAY '- Canada Day is on a weekday - enjoy the long weekend!'
+           END-IF.
+
+           IF WS-DAY-NAME = 'Monday   '
+               DISPLAY '- Great way to start the week with a holiday!'
+           END-IF.
+
+           IF WS-DAY-NAME = 'Friday   '
+               DISPLAY '- Fantastic end to the work week!'
+           END-IF.
+
+       ASK-CONTINUE SECTION.
+           DISPLAY ' '.
+           DISPLAY 'Check another year? (Y/N): ' WITH NO ADVANCING.
+           ACCEPT WS-CONTINUE-FLAG.
+           
+           IF WS-CONTINUE-FLAG = 'y' OR WS-CONTINUE-FLAG = 'Y'
+               MOVE 'Y' TO WS-CONTINUE-FLAG
+           ELSE
+               MOVE 'N' TO WS-CONTINUE-FLAG
+           END-IF.
+
+       END PROGRAM CANDAY01.
