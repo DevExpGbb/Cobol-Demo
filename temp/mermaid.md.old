@@ -1,0 +1,28 @@
+```mermaid
+graph TB
+    subgraph "COBOL Calling Example"
+        CALLER[CALLER.CBLLE<br/>Main Program]
+        HERON[HERON.CBLLE<br/>Triangle Area Calculator]
+        NESTEDCALL[NESTEDCALL.CBLLE<br/>Nested Program Example]
+    end
+    
+    subgraph "Data Flow"
+        INPUT[Input Parameters<br/>A=19.0, B=10.0, C=10.0]
+        OUTPUT[Output<br/>Triangle Area]
+    end
+    
+    INPUT --> CALLER
+    CALLER -->|CALL PROGRAM<br/>USING A B C AREA| HERON
+    HERON -->|Returns calculated area| CALLER
+    CALLER --> OUTPUT
+    
+    NESTEDCALL -.->|Alternative calling method| HERON
+    
+    classDef program fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef data fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef alternative fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    
+    class CALLER,HERON program
+    class NESTEDCALL alternative
+    class INPUT,OUTPUT data
+```

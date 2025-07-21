@@ -1,0 +1,106 @@
+```mermaid
+  graph TB
+    %% Styling definitions
+    classDef mainProgram fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef calledProgram fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef copybook fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef dataFile fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef systemCall fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+
+    %% Main Calling Programs
+    CALLER[CALLER.CBLLE]
+    CALLER2[CALLER2.CBLLE]
+    NESTEDCALL[NESTEDCALL.CBLLE]
+
+    %% Called Programs
+    HERON[HERON.CBLLE]
+    HERON_NESTED[HERON<br/>Nested in NESTEDCALL]
+
+    %% Picture Clause Programs
+    PICTURE1[PICTURE1.CBLLE]
+    PICTURE2[PICTURE2.CBLLE]
+    PICTURE3[PICTURE3.CBLLE]
+    PICTURE4[PICTURE4.CBLLE]
+
+    %% Database Programs
+    STAOBR[STAOBR.CBLLE]
+    STAOBR2[STAOBR2.CBLLE]
+    STAOBR_2[STAOBR_2.CBLLE]
+    STAPOR[STAPOR.CBLLE]
+
+    %% Copybook
+    DUMP_FULL[DUMP_FULL.CBLLE<br/>Copybook]
+
+    %% Database Files
+    STAVY[(STAVY.PF)]
+    OBRATY[(OBRATY.PF)]
+    STAVYW[(STAVYW.DSPF)]
+
+    %% System Procedures
+    QlnDumpCobol[QlnDumpCobol<br/>System Procedure]
+
+    %% Calling relationships
+    CALLER --> HERON
+    CALLER2 --> HERON
+    NESTEDCALL --> HERON_NESTED
+
+    %% Copy relationships
+    PICTURE1 -.-> DUMP_FULL
+    PICTURE2 -.-> DUMP_FULL
+    PICTURE3 -.-> DUMP_FULL
+    PICTURE4 -.-> DUMP_FULL
+
+    %% Database copy relationships
+    STAOBR -.-> STAVY
+    STAOBR -.-> OBRATY
+    STAOBR2 -.-> STAVY
+    STAOBR2 -.-> OBRATY
+    STAOBR_2 -.-> STAVY
+    STAOBR_2 -.-> OBRATY
+    STAPOR -.-> STAVYW
+    STAPOR -.-> STAVY
+
+    %% System calls
+    PICTURE1 --> QlnDumpCobol
+    PICTURE2 --> QlnDumpCobol
+    PICTURE3 --> QlnDumpCobol
+    PICTURE4 --> QlnDumpCobol
+
+    %% Apply styles
+    class CALLER,CALLER2,NESTEDCALL,STAOBR,STAOBR2,STAOBR_2,STAPOR,PICTURE1,PICTURE2,PICTURE3,PICTURE4 mainProgram
+    class HERON,HERON_NESTED calledProgram
+    class DUMP_FULL copybook
+    class STAVY,OBRATY,STAVYW dataFile
+    class QlnDumpCobol systemCall
+
+    %% Subgraphs for organization
+    subgraph "Calling Examples"
+        CALLER
+        CALLER2
+        NESTEDCALL
+        HERON
+        HERON_NESTED
+    end
+
+    subgraph "Picture Clause Examples"
+        PICTURE1
+        PICTURE2
+        PICTURE3
+        PICTURE4
+    end
+
+    subgraph "Database Programs"
+        STAOBR
+        STAOBR2
+        STAOBR_2
+        STAPOR
+    end
+
+    subgraph "Data Sources"
+        DUMP_FULL
+        STAVY
+        OBRATY
+        STAVYW
+        QlnDumpCobol
+    end
+```
