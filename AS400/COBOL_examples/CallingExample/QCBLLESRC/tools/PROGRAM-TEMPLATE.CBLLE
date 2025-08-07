@@ -1,0 +1,171 @@
+      * ===============================================
+      * PROGRAM: [PROGRAM-NAME]
+      * PURPOSE: [Brief description of program purpose]
+      * AUTHOR:  [Developer name]
+      * DATE:    [Creation date - YYYY-MM-DD]
+      * VERSION: [Version number - V1.0.0]
+      * ===============================================
+      * DEPENDENCIES:
+      *   - Called Programs: [List external programs called]
+      *   - Copybooks: [List copybooks included]
+      *   - Files: [List files accessed]
+      *   - Libraries: [List service programs used]
+      * ===============================================
+      * PARAMETERS:
+      *   INPUT:
+      *     [PARAM-NAME] - [Data Type] - [Description]
+      *   OUTPUT:
+      *     [PARAM-NAME] - [Data Type] - [Description]
+      *   IN/OUT:
+      *     [PARAM-NAME] - [Data Type] - [Description]
+      * ===============================================
+      * ERROR CODES:
+      *   0000 - Success
+      *   0001 - Invalid input parameters
+      *   0002 - Processing error
+      *   [Add more as needed]
+      * ===============================================
+      * BUSINESS LOGIC:
+      *   [Brief description of the business logic implemented]
+      *   [Include any special algorithms or formulas used]
+      * ===============================================
+      * REVISION HISTORY:
+      * [Date]     [Author]        [Description of changes]
+      * [YYYY-MM-DD] [Initial Dev]  [Initial creation]
+      * ===============================================
+      
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. [PROGRAM-NAME].
+       AUTHOR. [DEVELOPER-NAME].
+       DATE-WRITTEN. [CREATION-DATE].
+       DATE-COMPILED.
+       
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER. IBM-AS400.
+       OBJECT-COMPUTER. IBM-AS400.
+       
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       
+      * Program identification and version info
+       01 WS-PROGRAM-INFO.
+           05 WS-PROGRAM-NAME    PIC X(10) VALUE '[PROGRAM-NAME]'.
+           05 WS-VERSION         PIC X(8)  VALUE 'V1.0.0'.
+           05 WS-LAST-MODIFIED   PIC X(10) VALUE '[YYYY-MM-DD]'.
+           05 WS-AUTHOR          PIC X(20) VALUE '[AUTHOR-NAME]'.
+           
+      * Error handling variables
+       01 WS-ERROR-HANDLING.
+           05 WS-ERROR-CODE      PIC 9(4)  VALUE ZERO.
+               88 SUCCESS            VALUE 0000.
+               88 INVALID-INPUT      VALUE 0001.
+               88 PROCESSING-ERROR   VALUE 0002.
+           05 WS-ERROR-MESSAGE   PIC X(80) VALUE SPACES.
+           05 WS-DEBUG-MODE      PIC X(1)  VALUE 'N'.
+               88 DEBUG-ON           VALUE 'Y'.
+               88 DEBUG-OFF          VALUE 'N'.
+               
+      * Processing control variables
+       01 WS-CONTROL-FLAGS.
+           05 WS-FIRST-TIME      PIC X(1)  VALUE 'Y'.
+               88 FIRST-TIME         VALUE 'Y'.
+               88 NOT-FIRST-TIME     VALUE 'N'.
+           05 WS-END-OF-PROGRAM  PIC X(1)  VALUE 'N'.
+               88 END-OF-PROGRAM     VALUE 'Y'.
+               88 NOT-END-OF-PROGRAM VALUE 'N'.
+               
+      * Work variables - customize as needed
+       01 WS-WORK-VARIABLES.
+           05 WS-COUNTER         PIC 9(5)  VALUE ZERO.
+           05 WS-TEMP-FIELD      PIC X(100) VALUE SPACES.
+           
+      * [Add your specific working storage variables here]
+      
+      * LINKAGE SECTION - Uncomment if this is a called program
+      * LINKAGE SECTION.
+      * 01 LS-INPUT-PARAMETERS.
+      *     05 LS-PARAM1         PIC X(10).
+      *     05 LS-PARAM2         PIC 9(5).
+      * 01 LS-OUTPUT-PARAMETERS.
+      *     05 LS-RESULT         PIC X(20).
+           
+       PROCEDURE DIVISION.
+      * PROCEDURE DIVISION USING LS-INPUT-PARAMETERS LS-OUTPUT-PARAMETERS.
+       
+       0000-MAIN-PROCESS.
+      *    Main processing routine
+           PERFORM 1000-INITIALIZE
+           IF SUCCESS
+               PERFORM 2000-MAIN-LOGIC
+           END-IF
+           PERFORM 9000-TERMINATE
+           STOP RUN.
+           
+       1000-INITIALIZE.
+      *    Program initialization
+           IF DEBUG-ON
+               DISPLAY 'Starting program: ' WS-PROGRAM-NAME
+                       ' Version: ' WS-VERSION
+           END-IF
+           
+           SET NOT-FIRST-TIME TO TRUE
+           
+      *    Add initialization logic here
+           CONTINUE.
+           
+       2000-MAIN-LOGIC.
+      *    Main business logic
+           EVALUATE TRUE
+               WHEN FIRST-TIME
+                   PERFORM 2100-FIRST-TIME-PROCESSING
+               WHEN OTHER
+                   PERFORM 2200-STANDARD-PROCESSING
+           END-EVALUATE.
+           
+       2100-FIRST-TIME-PROCESSING.
+      *    First time processing logic
+           CONTINUE.
+           
+       2200-STANDARD-PROCESSING.
+      *    Standard processing logic
+           CONTINUE.
+           
+       8000-ERROR-HANDLING.
+      *    Centralized error handling
+           EVALUATE WS-ERROR-CODE
+               WHEN 0001
+                   MOVE 'Invalid input parameters provided' 
+                     TO WS-ERROR-MESSAGE
+               WHEN 0002
+                   MOVE 'Processing error occurred' 
+                     TO WS-ERROR-MESSAGE
+               WHEN OTHER
+                   MOVE 'Unknown error occurred' 
+                     TO WS-ERROR-MESSAGE
+           END-EVALUATE
+           
+           DISPLAY 'ERROR ' WS-ERROR-CODE ': ' WS-ERROR-MESSAGE
+           
+           IF DEBUG-ON
+               DISPLAY 'Program: ' WS-PROGRAM-NAME
+               DISPLAY 'Error location: [Specify where error occurred]'
+           END-IF.
+           
+       9000-TERMINATE.
+      *    Program cleanup and termination
+           IF DEBUG-ON
+               DISPLAY 'Ending program: ' WS-PROGRAM-NAME
+               DISPLAY 'Final status: ' WS-ERROR-CODE
+           END-IF
+           
+           IF NOT SUCCESS
+               PERFORM 8000-ERROR-HANDLING
+           END-IF
+           
+      *    Add cleanup logic here
+           CONTINUE.
+           
+      * ===============================================
+      * END OF PROGRAM TEMPLATE
+      * ===============================================
