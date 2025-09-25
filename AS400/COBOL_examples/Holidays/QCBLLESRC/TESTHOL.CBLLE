@@ -1,0 +1,343 @@
+*================================================================
+      * Program: TESTHOL - Test program for Holiday Tracker
+      * Purpose: Demonstrates automated testing of HOLIDAY01
+      *          with predefined test cases for various holidays
+      * Author: Development Team
+      * Date: September 25, 2025
+      *================================================================
+       IDENTIFICATION DIVISION.
+         PROGRAM-ID. TESTHOL.
+         AUTHOR. Development Team.
+         DATE-WRITTEN. September 25, 2025.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+
+      *=Test case structure===========================================
+       01 WS-TEST-CASES.
+          05 WS-TEST-CASE-1.
+             10 WS-TC1-YEAR      PIC 9(4) VALUE 2025.
+             10 WS-TC1-HOLIDAY   PIC 9(1) VALUE 1.
+             10 WS-TC1-EXP-MONTH PIC 9(2) VALUE 01.
+             10 WS-TC1-EXP-DAY   PIC 9(2) VALUE 01.
+             10 WS-TC1-EXP-DOY   PIC 9(3) VALUE 001.
+             10 WS-TC1-DESC      PIC X(30) VALUE 'New Year''s Day 2025'.
+
+          05 WS-TEST-CASE-2.
+             10 WS-TC2-YEAR      PIC 9(4) VALUE 2025.
+             10 WS-TC2-HOLIDAY   PIC 9(1) VALUE 3.
+             10 WS-TC2-EXP-MONTH PIC 9(2) VALUE 07.
+             10 WS-TC2-EXP-DAY   PIC 9(2) VALUE 01.
+             10 WS-TC2-EXP-DOY   PIC 9(3) VALUE 182.
+             10 WS-TC2-DESC      PIC X(30) VALUE 'Canada Day 2025'.
+
+          05 WS-TEST-CASE-3.
+             10 WS-TC3-YEAR      PIC 9(4) VALUE 2025.
+             10 WS-TC3-HOLIDAY   PIC 9(1) VALUE 6.
+             10 WS-TC3-EXP-MONTH PIC 9(2) VALUE 12.
+             10 WS-TC3-EXP-DAY   PIC 9(2) VALUE 25.
+             10 WS-TC3-EXP-DOY   PIC 9(3) VALUE 359.
+             10 WS-TC3-DESC      PIC X(30) VALUE 'Christmas Day 2025'.
+
+          05 WS-TEST-CASE-4.
+             10 WS-TC4-YEAR      PIC 9(4) VALUE 2024.
+             10 WS-TC4-HOLIDAY   PIC 9(1) VALUE 2.
+             10 WS-TC4-EXP-MONTH PIC 9(2) VALUE 03.
+             10 WS-TC4-EXP-DAY   PIC 9(2) VALUE 31.
+             10 WS-TC4-EXP-DOY   PIC 9(3) VALUE 091.
+             10 WS-TC4-DESC      PIC X(30) VALUE 'Easter Sunday 2024'.
+
+          05 WS-TEST-CASE-5.
+             10 WS-TC5-YEAR      PIC 9(4) VALUE 2025.
+             10 WS-TC5-HOLIDAY   PIC 9(1) VALUE 4.
+             10 WS-TC5-EXP-MONTH PIC 9(2) VALUE 09.
+             10 WS-TC5-EXP-DAY   PIC 9(2) VALUE 01.
+             10 WS-TC5-EXP-DOY   PIC 9(3) VALUE 244.
+             10 WS-TC5-DESC      PIC X(30) VALUE 'Labour Day 2025'.
+
+      *=Test result tracking==========================================
+       01 WS-TESTS-RUN           PIC 9(2) VALUE 0.
+       01 WS-TESTS-PASSED        PIC 9(2) VALUE 0.
+       01 WS-TESTS-FAILED        PIC 9(2) VALUE 0.
+
+      *=Current test variables========================================
+       01 WS-CURRENT-TEST.
+          05 WS-CT-YEAR           PIC 9(4).
+          05 WS-CT-HOLIDAY        PIC 9(1).
+          05 WS-CT-EXP-MONTH      PIC 9(2).
+          05 WS-CT-EXP-DAY        PIC 9(2).
+          05 WS-CT-EXP-DOY        PIC 9(3).
+          05 WS-CT-DESC           PIC X(30).
+
+      *=Calculated results from holiday logic========================
+       01 WS-CALC-RESULTS.
+          05 WS-CALC-MONTH        PIC 9(2).
+          05 WS-CALC-DAY          PIC 9(2).
+          05 WS-CALC-DOY          PIC 9(3).
+          05 WS-CALC-DOW          PIC 9(1).
+          05 WS-CALC-DAY-NAME     PIC X(9).
+
+      *=Date manipulation fields======================================
+       01 WS-DATE-NUMERIC        PIC 9(8).
+       01 WS-JAN-FIRST          PIC 9(8).
+
+      *=Easter calculation fields=====================================
+       01 WS-EASTER-WORK.
+          05 WS-A                PIC 9(2).
+          05 WS-B                PIC 9(2).
+          05 WS-C                PIC 9(2).
+          05 WS-D                PIC 9(2).
+          05 WS-E                PIC 9(2).
+          05 WS-F                PIC 9(2).
+          05 WS-G                PIC 9(2).
+          05 WS-H                PIC 9(3).
+          05 WS-I                PIC 9(3).
+          05 WS-K                PIC 9(3).
+          05 WS-L                PIC 9(2).
+          05 WS-M                PIC 9(2).
+          05 WS-N                PIC 9(2).
+          05 WS-P                PIC 9(2).
+
+      *=Day name table================================================
+       01 WS-DAY-TABLE.
+          05 FILLER              PIC X(9) VALUE 'Sunday   '.
+          05 FILLER              PIC X(9) VALUE 'Monday   '.
+          05 FILLER              PIC X(9) VALUE 'Tuesday  '.
+          05 FILLER              PIC X(9) VALUE 'Wednesday'.
+          05 FILLER              PIC X(9) VALUE 'Thursday '.
+          05 FILLER              PIC X(9) VALUE 'Friday   '.
+          05 FILLER              PIC X(9) VALUE 'Saturday '.
+
+       01 WS-DAY-NAMES REDEFINES WS-DAY-TABLE.
+          05 WS-DAY-ENTRY        PIC X(9) OCCURS 7 TIMES.
+
+      *=Holiday name table============================================
+       01 WS-HOLIDAY-TABLE.
+          05 FILLER              PIC X(20) VALUE 'New Year''s Day     '.
+          05 FILLER              PIC X(20) VALUE 'Easter Sunday       '.
+          05 FILLER              PIC X(20) VALUE 'Canada Day          '.
+          05 FILLER              PIC X(20) VALUE 'Labour Day          '.
+          05 FILLER              PIC X(20) VALUE 'Thanksgiving (CAN)  '.
+          05 FILLER              PIC X(20) VALUE 'Christmas Day       '.
+          05 FILLER              PIC X(20) VALUE 'Boxing Day          '.
+
+       01 WS-HOLIDAY-NAMES REDEFINES WS-HOLIDAY-TABLE.
+          05 WS-HOLIDAY-ENTRY    PIC X(20) OCCURS 7 TIMES.
+
+       PROCEDURE DIVISION.
+
+       MAIN-PROCEDURE.
+           DISPLAY '================================================'.
+           DISPLAY '     AUTOMATED HOLIDAY TRACKER TEST SUITE'.
+           DISPLAY '================================================'.
+           DISPLAY ' '.
+           
+           PERFORM TEST-CASE-1-ROUTINE.
+           PERFORM TEST-CASE-2-ROUTINE.
+           PERFORM TEST-CASE-3-ROUTINE.
+           PERFORM TEST-CASE-4-ROUTINE.
+           PERFORM TEST-CASE-5-ROUTINE.
+           
+           PERFORM DISPLAY-SUMMARY.
+           GOBACK.
+
+       TEST-CASE-1-ROUTINE SECTION.
+           MOVE WS-TEST-CASE-1 TO WS-CURRENT-TEST.
+           PERFORM RUN-TEST-CASE.
+
+       TEST-CASE-2-ROUTINE SECTION.
+           MOVE WS-TEST-CASE-2 TO WS-CURRENT-TEST.
+           PERFORM RUN-TEST-CASE.
+
+       TEST-CASE-3-ROUTINE SECTION.
+           MOVE WS-TEST-CASE-3 TO WS-CURRENT-TEST.
+           PERFORM RUN-TEST-CASE.
+
+       TEST-CASE-4-ROUTINE SECTION.
+           MOVE WS-TEST-CASE-4 TO WS-CURRENT-TEST.
+           PERFORM RUN-TEST-CASE.
+
+       TEST-CASE-5-ROUTINE SECTION.
+           MOVE WS-TEST-CASE-5 TO WS-CURRENT-TEST.
+           PERFORM RUN-TEST-CASE.
+
+       RUN-TEST-CASE SECTION.
+           ADD 1 TO WS-TESTS-RUN.
+           
+           DISPLAY 'Testing: ' WS-CT-DESC.
+           DISPLAY '  Year: ' WS-CT-YEAR ' Holiday: ' 
+                   WS-HOLIDAY-ENTRY(WS-CT-HOLIDAY).
+           
+           PERFORM CALCULATE-HOLIDAY-DATE.
+           PERFORM VERIFY-RESULTS.
+
+       CALCULATE-HOLIDAY-DATE SECTION.
+           EVALUATE WS-CT-HOLIDAY
+               WHEN 1
+                   PERFORM CALC-NEW-YEARS-TEST
+               WHEN 2
+                   PERFORM CALC-EASTER-TEST
+               WHEN 3
+                   PERFORM CALC-CANADA-DAY-TEST
+               WHEN 4
+                   PERFORM CALC-LABOUR-DAY-TEST
+               WHEN 5
+                   PERFORM CALC-THANKSGIVING-TEST
+               WHEN 6
+                   PERFORM CALC-CHRISTMAS-TEST
+               WHEN 7
+                   PERFORM CALC-BOXING-DAY-TEST
+           END-EVALUATE.
+
+       CALC-NEW-YEARS-TEST SECTION.
+           MOVE 01 TO WS-CALC-MONTH.
+           MOVE 01 TO WS-CALC-DAY.
+           PERFORM CALC-DAY-DETAILS-TEST.
+
+       CALC-EASTER-TEST SECTION.
+      *=Calculate Easter using Gregorian calendar algorithm===========
+           COMPUTE WS-A = FUNCTION MOD(WS-CT-YEAR, 19).
+           COMPUTE WS-B = WS-CT-YEAR / 100.
+           COMPUTE WS-C = FUNCTION MOD(WS-CT-YEAR, 100).
+           COMPUTE WS-D = WS-B / 4.
+           COMPUTE WS-E = FUNCTION MOD(WS-B, 4).
+           COMPUTE WS-F = (WS-B + 8) / 25.
+           COMPUTE WS-G = (WS-B - WS-F + 1) / 3.
+           COMPUTE WS-H = FUNCTION MOD((19 * WS-A + WS-B - WS-D - WS-G + 15), 30).
+           COMPUTE WS-I = WS-C / 4.
+           COMPUTE WS-K = FUNCTION MOD(WS-C, 4).
+           COMPUTE WS-L = FUNCTION MOD((32 + 2 * WS-E + 2 * WS-I - WS-H - WS-K), 7).
+           COMPUTE WS-M = (WS-A + 11 * WS-H + 22 * WS-L) / 451.
+           COMPUTE WS-N = (WS-H + WS-L - 7 * WS-M + 114) / 31.
+           COMPUTE WS-P = FUNCTION MOD((WS-H + WS-L - 7 * WS-M + 114), 31).
+
+           MOVE WS-N TO WS-CALC-MONTH.
+           COMPUTE WS-CALC-DAY = WS-P + 1.
+           PERFORM CALC-DAY-DETAILS-TEST.
+
+       CALC-CANADA-DAY-TEST SECTION.
+           MOVE 07 TO WS-CALC-MONTH.
+           MOVE 01 TO WS-CALC-DAY.
+           PERFORM CALC-DAY-DETAILS-TEST.
+
+       CALC-LABOUR-DAY-TEST SECTION.
+      *=First Monday in September=====================================
+           MOVE 09 TO WS-CALC-MONTH.
+           MOVE 01 TO WS-CALC-DAY.
+           PERFORM CALC-FIRST-MONDAY-TEST.
+
+       CALC-THANKSGIVING-TEST SECTION.
+      *=Second Monday in October======================================
+           MOVE 10 TO WS-CALC-MONTH.
+           MOVE 01 TO WS-CALC-DAY.
+           PERFORM CALC-FIRST-MONDAY-TEST.
+           ADD 7 TO WS-CALC-DAY.
+           PERFORM CALC-DAY-DETAILS-TEST.
+
+       CALC-CHRISTMAS-TEST SECTION.
+           MOVE 12 TO WS-CALC-MONTH.
+           MOVE 25 TO WS-CALC-DAY.
+           PERFORM CALC-DAY-DETAILS-TEST.
+
+       CALC-BOXING-DAY-TEST SECTION.
+           MOVE 12 TO WS-CALC-MONTH.
+           MOVE 26 TO WS-CALC-DAY.
+           PERFORM CALC-DAY-DETAILS-TEST.
+
+       CALC-FIRST-MONDAY-TEST SECTION.
+      *=Find first Monday of the month===============================
+           MOVE WS-CT-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-CALC-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-CALC-DAY TO WS-DATE-NUMERIC(7:2).
+
+      *=Get day of week for first day of month=======================
+           COMPUTE WS-CALC-DOW = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+
+      *=Adjust for our table (1=Sunday, 2=Monday, etc.)===============
+           IF WS-CALC-DOW = 7
+               MOVE 1 TO WS-CALC-DOW
+           ELSE
+               ADD 1 TO WS-CALC-DOW
+           END-IF.
+
+      *=Calculate days to add to get to Monday========================
+           IF WS-CALC-DOW = 2
+               MOVE 01 TO WS-CALC-DAY
+           ELSE
+               IF WS-CALC-DOW = 1
+                   MOVE 02 TO WS-CALC-DAY
+               ELSE
+                   COMPUTE WS-CALC-DAY = 9 - WS-CALC-DOW
+               END-IF
+           END-IF.
+
+       CALC-DAY-DETAILS-TEST SECTION.
+      *=Build date in YYYYMMDD format=================================
+           MOVE WS-CT-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-CALC-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-CALC-DAY TO WS-DATE-NUMERIC(7:2).
+
+      *=Calculate day of week=========================================
+           COMPUTE WS-CALC-DOW = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+
+      *=Adjust for our table (1=Sunday, 2=Monday, etc.)===============
+           IF WS-CALC-DOW = 7
+               MOVE 1 TO WS-CALC-DOW
+           ELSE
+               ADD 1 TO WS-CALC-DOW
+           END-IF.
+
+      *=Get day name from table=======================================
+           MOVE WS-DAY-ENTRY(WS-CALC-DOW) TO WS-CALC-DAY-NAME.
+
+      *=Calculate day of year=========================================
+           MOVE WS-CT-YEAR TO WS-JAN-FIRST(1:4).
+           MOVE '0101' TO WS-JAN-FIRST(5:4).
+
+           COMPUTE WS-CALC-DOY = 
+               FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC) -
+               FUNCTION INTEGER-OF-DATE(WS-JAN-FIRST) + 1.
+
+       VERIFY-RESULTS SECTION.
+           IF WS-CALC-MONTH = WS-CT-EXP-MONTH AND
+              WS-CALC-DAY = WS-CT-EXP-DAY AND
+              WS-CALC-DOY = WS-CT-EXP-DOY
+               
+               ADD 1 TO WS-TESTS-PASSED
+               DISPLAY '  RESULT: PASS - Date: ' WS-CALC-MONTH '/' 
+                       WS-CALC-DAY ' DOY: ' WS-CALC-DOY 
+                       ' (' WS-CALC-DAY-NAME ')'
+           ELSE
+               ADD 1 TO WS-TESTS-FAILED
+               DISPLAY '  RESULT: FAIL'
+               DISPLAY '    Expected: ' WS-CT-EXP-MONTH '/' 
+                       WS-CT-EXP-DAY ' DOY: ' WS-CT-EXP-DOY
+               DISPLAY '    Actual:   ' WS-CALC-MONTH '/' 
+                       WS-CALC-DAY ' DOY: ' WS-CALC-DOY
+           END-IF.
+           
+           DISPLAY ' '.
+
+       DISPLAY-SUMMARY SECTION.
+           DISPLAY '================================================'.
+           DISPLAY 'TEST SUMMARY'.
+           DISPLAY '================================================'.
+           DISPLAY 'Tests Run:    ' WS-TESTS-RUN.
+           DISPLAY 'Tests Passed: ' WS-TESTS-PASSED.
+           DISPLAY 'Tests Failed: ' WS-TESTS-FAILED.
+           
+           IF WS-TESTS-FAILED = 0
+               DISPLAY ' '.
+               DISPLAY 'ALL TESTS PASSED! Holiday calculations verified.'
+           ELSE
+               DISPLAY ' '.
+               DISPLAY 'SOME TESTS FAILED! Please review calculations.'
+           END-IF.
+           
+           DISPLAY '================================================'.
+
+       END PROGRAM TESTHOL.
