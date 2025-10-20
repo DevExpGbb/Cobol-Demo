@@ -21,7 +21,7 @@
       *=Input fields from user========================================
        01 WS-INPUT-YEAR          PIC 9(4) VALUE ZEROS.
        01 WS-INPUT-YEAR-DISPLAY  PIC Z(4).
-       01 WS-HOLIDAY-CHOICE      PIC 9(1) VALUE ZEROS.
+       01 WS-HOLIDAY-CHOICE      PIC 9(2) VALUE ZEROS.
 
       *=Date calculation fields=======================================
        01 WS-HOLIDAY-DATE.
@@ -54,16 +54,20 @@
 
       *=Holiday name table============================================
        01 WS-HOLIDAY-TABLE.
-          05 FILLER              PIC X(20) VALUE 'New Year''s Day     '.
-          05 FILLER              PIC X(20) VALUE 'Easter Sunday       '.
-          05 FILLER              PIC X(20) VALUE 'Canada Day          '.
-          05 FILLER              PIC X(20) VALUE 'Labour Day          '.
-          05 FILLER              PIC X(20) VALUE 'Thanksgiving (CAN)  '.
-          05 FILLER              PIC X(20) VALUE 'Christmas Day       '.
-          05 FILLER              PIC X(20) VALUE 'Boxing Day          '.
+          05 FILLER              PIC X(25) VALUE 'New Year''s Day          '.
+          05 FILLER              PIC X(25) VALUE 'Good Friday              '.
+          05 FILLER              PIC X(25) VALUE 'Easter Sunday            '.
+          05 FILLER              PIC X(25) VALUE 'Victoria Day             '.
+          05 FILLER              PIC X(25) VALUE 'Canada Day               '.
+          05 FILLER              PIC X(25) VALUE 'Civic Holiday (August)   '.
+          05 FILLER              PIC X(25) VALUE 'Labour Day               '.
+          05 FILLER              PIC X(25) VALUE 'Thanksgiving (Canada)    '.
+          05 FILLER              PIC X(25) VALUE 'Remembrance Day          '.
+          05 FILLER              PIC X(25) VALUE 'Christmas Day            '.
+          05 FILLER              PIC X(25) VALUE 'Boxing Day               '.
 
        01 WS-HOLIDAY-NAMES REDEFINES WS-HOLIDAY-TABLE.
-          05 WS-HOLIDAY-ENTRY    PIC X(20) OCCURS 7 TIMES.
+          05 WS-HOLIDAY-ENTRY    PIC X(25) OCCURS 11 TIMES.
 
       *=Easter calculation fields=====================================
        01 WS-EASTER-WORK.
@@ -132,21 +136,25 @@
        SELECT-HOLIDAY SECTION.
            MOVE 'N' TO WS-ERROR-FLAG.
            DISPLAY ' '.
-           DISPLAY 'Select a holiday:'.
-           DISPLAY '1. New Year''s Day (January 1)'.
-           DISPLAY '2. Easter Sunday (variable date)'.
-           DISPLAY '3. Canada Day (July 1)'.
-           DISPLAY '4. Labour Day (1st Monday in September)'.
-           DISPLAY '5. Thanksgiving - Canada (2nd Monday in October)'.
-           DISPLAY '6. Christmas Day (December 25)'.
-           DISPLAY '7. Boxing Day (December 26)'.
+           DISPLAY 'Select a Canadian holiday:'.
+           DISPLAY ' 1. New Year''s Day (January 1)'.
+           DISPLAY ' 2. Good Friday (Friday before Easter)'.
+           DISPLAY ' 3. Easter Sunday (variable date)'.
+           DISPLAY ' 4. Victoria Day (Monday before May 25)'.
+           DISPLAY ' 5. Canada Day (July 1)'.
+           DISPLAY ' 6. Civic Holiday (1st Monday in August)'.
+           DISPLAY ' 7. Labour Day (1st Monday in September)'.
+           DISPLAY ' 8. Thanksgiving (2nd Monday in October)'.
+           DISPLAY ' 9. Remembrance Day (November 11)'.
+           DISPLAY '10. Christmas Day (December 25)'.
+           DISPLAY '11. Boxing Day (December 26)'.
            DISPLAY ' '.
-           DISPLAY 'Enter choice (1-7): ' WITH NO ADVANCING.
+           DISPLAY 'Enter choice (1-11): ' WITH NO ADVANCING.
            ACCEPT WS-HOLIDAY-CHOICE.
 
       *=Validate holiday choice=======================================
-           IF WS-HOLIDAY-CHOICE < 1 OR WS-HOLIDAY-CHOICE > 7
-               DISPLAY 'Error: Please enter a number between 1 and 7'
+           IF WS-HOLIDAY-CHOICE < 1 OR WS-HOLIDAY-CHOICE > 11
+               DISPLAY 'Error: Please enter a number between 1 and 11'
                MOVE 'Y' TO WS-ERROR-FLAG
            END-IF.
 
@@ -155,16 +163,24 @@
                WHEN 1
                    PERFORM CALC-NEW-YEARS
                WHEN 2
-                   PERFORM CALC-EASTER
+                   PERFORM CALC-GOOD-FRIDAY
                WHEN 3
-                   PERFORM CALC-CANADA-DAY
+                   PERFORM CALC-EASTER
                WHEN 4
-                   PERFORM CALC-LABOUR-DAY
+                   PERFORM CALC-VICTORIA-DAY
                WHEN 5
-                   PERFORM CALC-THANKSGIVING
+                   PERFORM CALC-CANADA-DAY
                WHEN 6
-                   PERFORM CALC-CHRISTMAS
+                   PERFORM CALC-CIVIC-HOLIDAY
                WHEN 7
+                   PERFORM CALC-LABOUR-DAY
+               WHEN 8
+                   PERFORM CALC-THANKSGIVING
+               WHEN 9
+                   PERFORM CALC-REMEMBRANCE-DAY
+               WHEN 10
+                   PERFORM CALC-CHRISTMAS
+               WHEN 11
                    PERFORM CALC-BOXING-DAY
            END-EVALUATE.
 
@@ -192,6 +208,56 @@
 
            MOVE WS-N TO WS-MONTH.
            COMPUTE WS-DAY = WS-P + 1.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-GOOD-FRIDAY SECTION.
+      *=Calculate Easter first, then subtract 2 days=================
+           COMPUTE WS-A = FUNCTION MOD(WS-YEAR, 19).
+           COMPUTE WS-B = WS-YEAR / 100.
+           COMPUTE WS-C = FUNCTION MOD(WS-YEAR, 100).
+           COMPUTE WS-D = WS-B / 4.
+           COMPUTE WS-E = FUNCTION MOD(WS-B, 4).
+           COMPUTE WS-F = (WS-B + 8) / 25.
+           COMPUTE WS-G = (WS-B - WS-F + 1) / 3.
+           COMPUTE WS-H = FUNCTION MOD((19 * WS-A + WS-B - WS-D - WS-G + 15), 30).
+           COMPUTE WS-I = WS-C / 4.
+           COMPUTE WS-K = FUNCTION MOD(WS-C, 4).
+           COMPUTE WS-L = FUNCTION MOD((32 + 2 * WS-E + 2 * WS-I - WS-H - WS-K), 7).
+           COMPUTE WS-M = (WS-A + 11 * WS-H + 22 * WS-L) / 451.
+           COMPUTE WS-N = (WS-H + WS-L - 7 * WS-M + 114) / 31.
+           COMPUTE WS-P = FUNCTION MOD((WS-H + WS-L - 7 * WS-M + 114), 31).
+
+           MOVE WS-N TO WS-MONTH.
+           COMPUTE WS-DAY = WS-P + 1.
+      
+      *=Subtract 2 days to get Good Friday===========================
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+           
+           COMPUTE WS-DATE-NUMERIC = 
+               FUNCTION DATE-OF-INTEGER(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC) - 2).
+           
+           MOVE WS-DATE-NUMERIC(5:2) TO WS-MONTH.
+           MOVE WS-DATE-NUMERIC(7:2) TO WS-DAY.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-VICTORIA-DAY SECTION.
+      *=Monday on or before May 24====================================
+           MOVE 05 TO WS-MONTH.
+           MOVE 24 TO WS-DAY.
+           PERFORM CALC-MONDAY-ON-OR-BEFORE.
+
+       CALC-CIVIC-HOLIDAY SECTION.
+      *=First Monday in August=======================================
+           MOVE 08 TO WS-MONTH.
+           MOVE 01 TO WS-DAY.
+           PERFORM CALC-FIRST-MONDAY.
+
+       CALC-REMEMBRANCE-DAY SECTION.
+           MOVE 11 TO WS-MONTH.
+           MOVE 11 TO WS-DAY.
            PERFORM CALC-DAY-DETAILS.
 
        CALC-CANADA-DAY SECTION.
@@ -251,6 +317,39 @@
                    COMPUTE WS-DAY = 9 - WS-DAY-OF-WEEK
                END-IF
            END-IF.
+
+       CALC-MONDAY-ON-OR-BEFORE SECTION.
+      *=Find Monday on or before the specified date==================
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+
+      *=Get day of week for the specified date=======================
+           COMPUTE WS-DAY-OF-WEEK = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+
+      *=Adjust for our table (1=Sunday, 2=Monday, etc.)===============
+           IF WS-DAY-OF-WEEK = 7
+               MOVE 1 TO WS-DAY-OF-WEEK
+           ELSE
+               ADD 1 TO WS-DAY-OF-WEEK
+           END-IF.
+
+      *=Calculate days to subtract to get to Monday==================
+           IF WS-DAY-OF-WEEK = 2
+      *=Already Monday, keep the day================================
+               CONTINUE
+           ELSE
+               IF WS-DAY-OF-WEEK = 1
+      *=Sunday, go back 6 days to previous Monday===================
+                   SUBTRACT 6 FROM WS-DAY
+               ELSE
+      *=Calculate days back to Monday================================
+                   COMPUTE WS-DAY = WS-DAY - (WS-DAY-OF-WEEK - 2)
+               END-IF
+           END-IF.
+           PERFORM CALC-DAY-DETAILS.
 
        CALC-DAY-DETAILS SECTION.
       *=Build date in YYYYMMDD format=================================

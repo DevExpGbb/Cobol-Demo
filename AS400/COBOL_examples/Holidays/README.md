@@ -1,7 +1,7 @@
-# Holiday Tracking Program for Tax Calculations
+# Holiday Tracking Program for Tax Calculations - Canadian Edition
 
 ## Overview
-The Holiday Tracking Program is a COBOL AS400 application that determines what day of the year holidays fall on for past, present, and future years. This is particularly useful for tax calculations and business planning.
+The Holiday Tracking Program is a COBOL AS400 application that determines what day of the year Canadian statutory holidays fall on for past, present, and future years. This is particularly useful for tax calculations and business planning in Canada.
 
 ## Programs
 
@@ -18,12 +18,16 @@ The Holiday Tracking Program is a COBOL AS400 application that determines what d
 
 #### Supported Holidays:
 1. **New Year's Day** - January 1st (fixed date)
-2. **Easter Sunday** - Variable date using Gregorian calendar algorithm
-3. **Canada Day** - July 1st (fixed date)
-4. **Labour Day** - First Monday in September (calculated)
-5. **Thanksgiving (Canada)** - Second Monday in October (calculated)
-6. **Christmas Day** - December 25th (fixed date)
-7. **Boxing Day** - December 26th (fixed date)
+2. **Good Friday** - Friday before Easter (calculated)
+3. **Easter Sunday** - Variable date using Gregorian calendar algorithm
+4. **Victoria Day** - Monday on or before May 24 (calculated) - Uniquely Canadian
+5. **Canada Day** - July 1st (fixed date)
+6. **Civic Holiday** - First Monday in August (calculated)
+7. **Labour Day** - First Monday in September (calculated)
+8. **Thanksgiving (Canada)** - Second Monday in October (calculated)
+9. **Remembrance Day** - November 11th (fixed date) - Canadian observance
+10. **Christmas Day** - December 25th (fixed date)
+11. **Boxing Day** - December 26th (fixed date) - Canadian statutory holiday
 
 #### Usage:
 1. Run the program
@@ -45,19 +49,23 @@ The Holiday Tracking Program is a COBOL AS400 application that determines what d
 
 Enter a year (1600-3000): 2025
 
-Select a holiday:
-1. New Year's Day (January 1)
-2. Easter Sunday (variable date)
-3. Canada Day (July 1)
-4. Labour Day (1st Monday in September)
-5. Thanksgiving - Canada (2nd Monday in October)
-6. Christmas Day (December 25)
-7. Boxing Day (December 26)
+Select a Canadian holiday:
+ 1. New Year's Day (January 1)
+ 2. Good Friday (Friday before Easter)
+ 3. Easter Sunday (variable date)
+ 4. Victoria Day (Monday before May 25)
+ 5. Canada Day (July 1)
+ 6. Civic Holiday (1st Monday in August)
+ 7. Labour Day (1st Monday in September)
+ 8. Thanksgiving (2nd Monday in October)
+ 9. Remembrance Day (November 11)
+10. Christmas Day (December 25)
+11. Boxing Day (December 26)
 
-Enter choice (1-7): 3
+Enter choice (1-11): 5
 
 ================================================
-Canada Day          (7/1/2025) falls on a Tuesday  
+Canada Day               (7/1/2025) falls on a Tuesday  
 ================================================
 
 Tax Information:
@@ -82,30 +90,53 @@ A comprehensive automated test suite that validates holiday calculations with pr
 
 #### Test Cases Included:
 1. New Year's Day 2025 (Day 1 of year)
-2. Canada Day 2025 (Day 182 of year)
-3. Christmas Day 2025 (Day 359 of year)
-4. Easter Sunday 2024 (Day 91 of year) - Leap year test
-5. Labour Day 2025 (Day 244 of year) - Calculated Monday
+2. Good Friday 2025 (Day 108 of year) - Calculated from Easter
+3. Victoria Day 2025 (Day 139 of year) - Monday before May 25
+4. Canada Day 2025 (Day 182 of year)
+5. Labour Day 2025 (Day 244 of year) - First Monday in September
+6. Remembrance Day 2025 (Day 315 of year)
+7. Boxing Day 2025 (Day 360 of year)
 
 #### Sample Test Output:
 ```
 ================================================
      AUTOMATED HOLIDAY TRACKER TEST SUITE
+   Testing Canadian Statutory Holidays
 ================================================
 
 Testing: New Year's Day 2025
   Year: 2025 Holiday: New Year's Day
   RESULT: PASS - Date: 1/1 DOY: 1 (Wednesday)
 
+Testing: Good Friday 2025
+  Year: 2025 Holiday: Good Friday
+  RESULT: PASS - Date: 4/18 DOY: 108 (Friday   )
+
+Testing: Victoria Day 2025
+  Year: 2025 Holiday: Victoria Day
+  RESULT: PASS - Date: 5/19 DOY: 139 (Monday   )
+
 Testing: Canada Day 2025
   Year: 2025 Holiday: Canada Day
   RESULT: PASS - Date: 7/1 DOY: 182 (Tuesday  )
 
+Testing: Labour Day 2025
+  Year: 2025 Holiday: Labour Day
+  RESULT: PASS - Date: 9/1 DOY: 244 (Monday   )
+
+Testing: Remembrance Day 2025
+  Year: 2025 Holiday: Remembrance Day
+  RESULT: PASS - Date: 11/11 DOY: 315 (Tuesday  )
+
+Testing: Boxing Day 2025
+  Year: 2025 Holiday: Boxing Day
+  RESULT: PASS - Date: 12/26 DOY: 360 (Friday   )
+
 ================================================
 TEST SUMMARY
 ================================================
-Tests Run:    5
-Tests Passed: 5
+Tests Run:    7
+Tests Passed: 7
 Tests Failed: 0
 
 ALL TESTS PASSED! Holiday calculations verified.
