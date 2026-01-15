@@ -1,5 +1,4 @@
 ---
-mode: ask
 model: GPT-4.1
 description: 'Generate a new PRD (Product Requirements Document)'
 ---

@@ -1,5 +1,4 @@
 ---
-mode: agent 
 model: Claude Sonnet 4
 description: 'Create a Mermaid flowchart to visualize COBOL program dependencies.'
 ---

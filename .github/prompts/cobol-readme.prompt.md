@@ -1,6 +1,5 @@
 ---
 model: Claude Sonnet 4
-mode: agent
 description: Create a comprehensive README.md file for a COBOL program with detailed structure and content.
 ---
 # COBOL Program Documentation Generator Prompt

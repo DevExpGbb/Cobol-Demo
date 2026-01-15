@@ -1,6 +1,5 @@
 ---
 model: Claude Sonnet 4
-mode: agent
 description: Analyze the provided COBOL code structure and identify dependencies, circular references, modularity issues among other items.
 ---
 
