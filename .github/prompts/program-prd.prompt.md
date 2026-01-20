@@ -1,6 +1,5 @@
 ---
-mode: agent
-model: GPT-4.1
+model: GPT-5.2
 description: 'Generate a new PRD (Product Requirements Document)'
 ---
 Your goal is to generate a new PRD (Product Requirements Document) based on the provided context, which would include the program code and any docs in the same directory as the COBOL program folder including but not limited to ["cobol_analyzer_report.md", "cobol_dependency_report.md", "README.md"]. 
