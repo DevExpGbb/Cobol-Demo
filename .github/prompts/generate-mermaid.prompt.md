@@ -1,5 +1,5 @@
 ---
-model: Claude Sonnet 4
+model: Claude Sonnet 4.5
 description: 'Create a Mermaid flowchart to visualize COBOL program dependencies.'
 ---
 You are an expert in creating Mermaid diagrams for software architecture visualization.

@@ -1,5 +1,5 @@
 ---
-model: Claude Sonnet 4
+model: Claude Sonnet 4.5
 description: Create a comprehensive README.md file for a COBOL program with detailed structure and content.
 ---
 # COBOL Program Documentation Generator Prompt

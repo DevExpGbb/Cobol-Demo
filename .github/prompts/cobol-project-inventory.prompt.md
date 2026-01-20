@@ -1,5 +1,5 @@
 ---
-model: Claude Sonnet 4
+model: Claude Sonnet 4.5
 description: Analyze the COBOL specified project codebase and inventory of all COBOL components in a project, providing a foundational understanding of the codebase structure
 ---
 

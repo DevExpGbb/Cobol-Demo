@@ -1,5 +1,5 @@
 ---
-model: Claude Sonnet 4
+model: Claude Sonnet 4.5
 description: Analyze the provided COBOL code structure and identify dependencies, circular references, modularity issues among other items.
 ---
 
