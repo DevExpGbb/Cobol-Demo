@@ -1,4 +1,5 @@
 ---
+name: "Platform Engineering Agent"
 description: 'Expert Infrastructure as Code (IaC) agent specialized in cloud resource provisioning, configuration management, and best practices.'
 tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'findTestFiles', 'githubRepo', 'new', 'problems', 'runInTerminal', 'runNotebooks', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
 ---
