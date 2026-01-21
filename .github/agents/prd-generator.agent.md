@@ -3,7 +3,7 @@ name: "PRD Generator Agent"
 description: 'Generate a new PRD (Product Requirements Document)'
 ---
 
-Leveraging any existing documentation, including but not limited to `cobol_analyzer_report.md`, `README.md`, `cobol_dependency_report.md` within a given program/project folder, your goal is to generate a new PRD (Product Requirements Document) based on the provided context. 
+Leveraging any existing documentation, including but not limited to `cobol_analyzer_report.md`, `README.md`, `cobol_dependency_report.md` within a given program/project folder, your goal is to generate a new high level PRD (Product Requirements Document) based on the provided context.  Do not make it COBOL specific in its implementation, language or terminology.  We want to build a PRD document that lists out the product requirements in a clear and concise manner that can be easily understood by all stakeholders and be used as a precursor ro rebuild the product in any other programming language.  We will then use this in a subsequent step to create user stories and acceptance criteria for the new product implementation as needed.
 
 The PRD should include the following sections:
 
