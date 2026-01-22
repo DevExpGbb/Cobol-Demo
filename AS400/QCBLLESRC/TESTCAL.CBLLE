@@ -1,0 +1,276 @@
+      ******************************************************************
+      * Author: Copilot AI Assistant
+      * Date: 2025-01-21
+      * Purpose: Test Program for Calendar Sub Function
+      * Description: Tests the CALENDAR subroutine with various dates
+      *              and validates day of week and holiday detection
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTCAL.
+       
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * Test control variables
+       01 WS-TEST-COUNTER      PIC 99 VALUE ZEROS.
+       01 WS-PASSED-TESTS      PIC 99 VALUE ZEROS.
+       01 WS-FAILED-TESTS      PIC 99 VALUE ZEROS.
+       01 WS-CONTINUE-FLAG     PIC X(1) VALUE 'Y'.
+       
+      * Test data structures
+       01 WS-TEST-DATE.
+          05 WS-TEST-YEAR      PIC 9(4).
+          05 WS-TEST-MONTH     PIC 99.
+          05 WS-TEST-DAY       PIC 99.
+          
+       01 WS-EXPECTED-RESULTS.
+          05 WS-EXPECTED-DAY   PIC X(9).
+          05 WS-EXPECTED-HOLIDAY PIC X(20).
+          05 WS-EXPECTED-IS-HOLIDAY PIC X(1).
+          
+       01 WS-CALENDAR-OUTPUT.
+          05 WS-OUT-DAY-NAME   PIC X(9).
+          05 WS-OUT-HOLIDAY    PIC X(20).
+          05 WS-OUT-IS-HOLIDAY PIC X(1).
+          05 WS-OUT-ERROR-FLAG PIC X(1).
+          05 WS-OUT-ERROR-MSG  PIC X(50).
+          
+      * Display variables
+       01 WS-DISPLAY-LINE      PIC X(80) VALUE SPACES.
+       01 WS-USER-INPUT        PIC X(1) VALUE SPACES.
+       
+       PROCEDURE DIVISION.
+       MAIN-PROCEDURE.
+           PERFORM DISPLAY-HEADER
+           PERFORM RUN-AUTOMATED-TESTS
+           PERFORM INTERACTIVE-TESTING
+           PERFORM DISPLAY-SUMMARY
+           STOP RUN.
+           
+       DISPLAY-HEADER.
+           DISPLAY "================================================"
+           DISPLAY "        CALENDAR SUBROUTINE TEST PROGRAM"
+           DISPLAY "    Testing Day of Week and Holiday Detection"
+           DISPLAY "================================================"
+           DISPLAY " ".
+           
+       RUN-AUTOMATED-TESTS.
+           DISPLAY "Running Automated Tests..."
+           DISPLAY " "
+           
+      * Test 1: Canada Day 2025 (known to be Tuesday)
+           PERFORM TEST-CANADA-DAY-2025
+           
+      * Test 2: New Year's Day 2025 (known to be Wednesday)
+           PERFORM TEST-NEW-YEAR-2025
+           
+      * Test 3: Christmas Day 2024 (known to be Wednesday)
+           PERFORM TEST-CHRISTMAS-2024
+           
+      * Test 4: Regular day (July 15, 2025 - Tuesday)
+           PERFORM TEST-REGULAR-DAY
+           
+      * Test 5: Invalid year (too low)
+           PERFORM TEST-INVALID-YEAR-LOW
+           
+      * Test 6: Invalid month
+           PERFORM TEST-INVALID-MONTH
+           
+           DISPLAY " "
+           DISPLAY "Automated tests completed."
+           DISPLAY " ".
+           
+       TEST-CANADA-DAY-2025.
+           ADD 1 TO WS-TEST-COUNTER
+           MOVE 2025 TO WS-TEST-YEAR
+           MOVE 07 TO WS-TEST-MONTH
+           MOVE 01 TO WS-TEST-DAY
+           
+           MOVE "Tuesday  " TO WS-EXPECTED-DAY
+           MOVE "Canada Day" TO WS-EXPECTED-HOLIDAY
+           MOVE "Y" TO WS-EXPECTED-IS-HOLIDAY
+           
+           CALL "CALENDAR" USING WS-TEST-DATE, WS-CALENDAR-OUTPUT
+           
+           IF WS-OUT-ERROR-FLAG = 'N' AND
+              WS-OUT-DAY-NAME = WS-EXPECTED-DAY AND
+              WS-OUT-IS-HOLIDAY = WS-EXPECTED-IS-HOLIDAY THEN
+               ADD 1 TO WS-PASSED-TESTS
+               DISPLAY "TEST 1 PASSED: Canada Day 2025 = " 
+                       WS-OUT-DAY-NAME " (Holiday: " WS-OUT-HOLIDAY ")"
+           ELSE
+               ADD 1 TO WS-FAILED-TESTS
+               DISPLAY "TEST 1 FAILED: Expected " WS-EXPECTED-DAY 
+                       ", Got " WS-OUT-DAY-NAME
+               IF WS-OUT-ERROR-FLAG = 'Y' THEN
+                   DISPLAY "  Error: " WS-OUT-ERROR-MSG
+               END-IF
+           END-IF.
+           
+       TEST-NEW-YEAR-2025.
+           ADD 1 TO WS-TEST-COUNTER
+           MOVE 2025 TO WS-TEST-YEAR
+           MOVE 01 TO WS-TEST-MONTH
+           MOVE 01 TO WS-TEST-DAY
+           
+           MOVE "Wednesday" TO WS-EXPECTED-DAY
+           MOVE "New Year's Day" TO WS-EXPECTED-HOLIDAY
+           MOVE "Y" TO WS-EXPECTED-IS-HOLIDAY
+           
+           CALL "CALENDAR" USING WS-TEST-DATE, WS-CALENDAR-OUTPUT
+           
+           IF WS-OUT-ERROR-FLAG = 'N' AND
+              WS-OUT-IS-HOLIDAY = WS-EXPECTED-IS-HOLIDAY THEN
+               ADD 1 TO WS-PASSED-TESTS
+               DISPLAY "TEST 2 PASSED: New Year 2025 = " 
+                       WS-OUT-DAY-NAME " (Holiday: " WS-OUT-HOLIDAY ")"
+           ELSE
+               ADD 1 TO WS-FAILED-TESTS
+               DISPLAY "TEST 2 FAILED: Expected holiday, Got " 
+                       WS-OUT-IS-HOLIDAY
+               IF WS-OUT-ERROR-FLAG = 'Y' THEN
+                   DISPLAY "  Error: " WS-OUT-ERROR-MSG
+               END-IF
+           END-IF.
+           
+       TEST-CHRISTMAS-2024.
+           ADD 1 TO WS-TEST-COUNTER
+           MOVE 2024 TO WS-TEST-YEAR
+           MOVE 12 TO WS-TEST-MONTH
+           MOVE 25 TO WS-TEST-DAY
+           
+           MOVE "Christmas Day" TO WS-EXPECTED-HOLIDAY
+           MOVE "Y" TO WS-EXPECTED-IS-HOLIDAY
+           
+           CALL "CALENDAR" USING WS-TEST-DATE, WS-CALENDAR-OUTPUT
+           
+           IF WS-OUT-ERROR-FLAG = 'N' AND
+              WS-OUT-IS-HOLIDAY = WS-EXPECTED-IS-HOLIDAY THEN
+               ADD 1 TO WS-PASSED-TESTS
+               DISPLAY "TEST 3 PASSED: Christmas 2024 = " 
+                       WS-OUT-DAY-NAME " (Holiday: " WS-OUT-HOLIDAY ")"
+           ELSE
+               ADD 1 TO WS-FAILED-TESTS
+               DISPLAY "TEST 3 FAILED: Expected holiday, Got " 
+                       WS-OUT-IS-HOLIDAY
+               IF WS-OUT-ERROR-FLAG = 'Y' THEN
+                   DISPLAY "  Error: " WS-OUT-ERROR-MSG
+               END-IF
+           END-IF.
+           
+       TEST-REGULAR-DAY.
+           ADD 1 TO WS-TEST-COUNTER
+           MOVE 2025 TO WS-TEST-YEAR
+           MOVE 07 TO WS-TEST-MONTH
+           MOVE 15 TO WS-TEST-DAY
+           
+           MOVE "N" TO WS-EXPECTED-IS-HOLIDAY
+           
+           CALL "CALENDAR" USING WS-TEST-DATE, WS-CALENDAR-OUTPUT
+           
+           IF WS-OUT-ERROR-FLAG = 'N' AND
+              WS-OUT-IS-HOLIDAY = WS-EXPECTED-IS-HOLIDAY THEN
+               ADD 1 TO WS-PASSED-TESTS
+               DISPLAY "TEST 4 PASSED: Regular day July 15, 2025 = " 
+                       WS-OUT-DAY-NAME " (Not a holiday)"
+           ELSE
+               ADD 1 TO WS-FAILED-TESTS
+               DISPLAY "TEST 4 FAILED: Expected non-holiday, Got " 
+                       WS-OUT-IS-HOLIDAY
+               IF WS-OUT-ERROR-FLAG = 'Y' THEN
+                   DISPLAY "  Error: " WS-OUT-ERROR-MSG
+               END-IF
+           END-IF.
+           
+       TEST-INVALID-YEAR-LOW.
+           ADD 1 TO WS-TEST-COUNTER
+           MOVE 1500 TO WS-TEST-YEAR
+           MOVE 01 TO WS-TEST-MONTH
+           MOVE 01 TO WS-TEST-DAY
+           
+           CALL "CALENDAR" USING WS-TEST-DATE, WS-CALENDAR-OUTPUT
+           
+           IF WS-OUT-ERROR-FLAG = 'Y' THEN
+               ADD 1 TO WS-PASSED-TESTS
+               DISPLAY "TEST 5 PASSED: Invalid year 1500 correctly rejected"
+           ELSE
+               ADD 1 TO WS-FAILED-TESTS
+               DISPLAY "TEST 5 FAILED: Should have rejected year 1500"
+           END-IF.
+           
+       TEST-INVALID-MONTH.
+           ADD 1 TO WS-TEST-COUNTER
+           MOVE 2025 TO WS-TEST-YEAR
+           MOVE 13 TO WS-TEST-MONTH
+           MOVE 01 TO WS-TEST-DAY
+           
+           CALL "CALENDAR" USING WS-TEST-DATE, WS-CALENDAR-OUTPUT
+           
+           IF WS-OUT-ERROR-FLAG = 'Y' THEN
+               ADD 1 TO WS-PASSED-TESTS
+               DISPLAY "TEST 6 PASSED: Invalid month 13 correctly rejected"
+           ELSE
+               ADD 1 TO WS-FAILED-TESTS
+               DISPLAY "TEST 6 FAILED: Should have rejected month 13"
+           END-IF.
+           
+       INTERACTIVE-TESTING.
+           DISPLAY "Would you like to test specific dates? (Y/N): "
+           ACCEPT WS-USER-INPUT
+           
+           IF WS-USER-INPUT = 'Y' OR WS-USER-INPUT = 'y' THEN
+               PERFORM UNTIL WS-CONTINUE-FLAG = 'N'
+                   PERFORM GET-USER-DATE
+                   PERFORM CALL-CALENDAR-FUNCTION
+                   PERFORM DISPLAY-RESULTS
+                   DISPLAY " "
+                   DISPLAY "Test another date? (Y/N): "
+                   ACCEPT WS-USER-INPUT
+                   IF WS-USER-INPUT = 'N' OR WS-USER-INPUT = 'n' THEN
+                       MOVE 'N' TO WS-CONTINUE-FLAG
+                   END-IF
+               END-PERFORM
+           END-IF.
+           
+       GET-USER-DATE.
+           DISPLAY "Enter year (1600-3000): "
+           ACCEPT WS-TEST-YEAR
+           
+           DISPLAY "Enter month (1-12): "
+           ACCEPT WS-TEST-MONTH
+           
+           DISPLAY "Enter day (1-31): "
+           ACCEPT WS-TEST-DAY.
+           
+       CALL-CALENDAR-FUNCTION.
+           CALL "CALENDAR" USING WS-TEST-DATE, WS-CALENDAR-OUTPUT.
+           
+       DISPLAY-RESULTS.
+           IF WS-OUT-ERROR-FLAG = 'Y' THEN
+               DISPLAY "Error: " WS-OUT-ERROR-MSG
+           ELSE
+               DISPLAY "Date: " WS-TEST-MONTH "/" WS-TEST-DAY 
+                       "/" WS-TEST-YEAR
+               DISPLAY "Day of Week: " WS-OUT-DAY-NAME
+               IF WS-OUT-IS-HOLIDAY = 'Y' THEN
+                   DISPLAY "Holiday: " WS-OUT-HOLIDAY
+               ELSE
+                   DISPLAY "Not a holiday"
+               END-IF
+           END-IF.
+           
+       DISPLAY-SUMMARY.
+           DISPLAY " "
+           DISPLAY "================================================"
+           DISPLAY "              TEST SUMMARY"
+           DISPLAY "================================================"
+           DISPLAY "Total Tests Run: " WS-TEST-COUNTER
+           DISPLAY "Tests Passed:    " WS-PASSED-TESTS
+           DISPLAY "Tests Failed:    " WS-FAILED-TESTS
+           
+           IF WS-FAILED-TESTS = 0 THEN
+               DISPLAY "All tests PASSED!"
+           ELSE
+               DISPLAY "Some tests FAILED - review results above"
+           END-IF
+           
+           DISPLAY "================================================".

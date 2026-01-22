@@ -1,0 +1,217 @@
+      ******************************************************************
+      * Author: Copilot AI Assistant
+      * Date: 2025-01-21
+      * Purpose: Interactive Calendar Application
+      * Description: Standalone application using the CALENDAR 
+      *              subroutine to provide day of week and holiday 
+      *              information for any date
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CALAPPS.
+       
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * Input variables
+       01 WS-INPUT-DATE.
+          05 WS-INPUT-YEAR      PIC 9(4) VALUE ZEROS.
+          05 WS-INPUT-MONTH     PIC 99   VALUE ZEROS.
+          05 WS-INPUT-DAY       PIC 99   VALUE ZEROS.
+          
+      * Current date variables
+       01 WS-CURRENT-DATE.
+          05 WS-CURR-YEAR       PIC 9(4).
+          05 WS-CURR-MONTH      PIC 99.
+          05 WS-CURR-DAY        PIC 99.
+          
+       01 WS-SYSTEM-DATE       PIC 9(8).
+       
+      * Calendar subroutine output
+       01 WS-CALENDAR-OUTPUT.
+          05 WS-OUT-DAY-NAME    PIC X(9).
+          05 WS-OUT-HOLIDAY     PIC X(20).
+          05 WS-OUT-IS-HOLIDAY  PIC X(1).
+          05 WS-OUT-ERROR-FLAG  PIC X(1).
+          05 WS-OUT-ERROR-MSG   PIC X(50).
+          
+      * Control variables
+       01 WS-CONTINUE-FLAG     PIC X(1) VALUE 'Y'.
+       01 WS-MENU-CHOICE       PIC X(1) VALUE SPACES.
+       01 WS-USER-INPUT        PIC X(10) VALUE SPACES.
+       
+      * Display formatting
+       01 WS-DISPLAY-LINE      PIC X(80) VALUE SPACES.
+       01 WS-FORMATTED-DATE    PIC X(20) VALUE SPACES.
+       
+       PROCEDURE DIVISION.
+       MAIN-PROCEDURE.
+           PERFORM DISPLAY-WELCOME
+           PERFORM MAIN-MENU-LOOP
+           PERFORM DISPLAY-GOODBYE
+           STOP RUN.
+           
+       DISPLAY-WELCOME.
+           DISPLAY "================================================"
+           DISPLAY "            CALENDAR APPLICATION"
+           DISPLAY "     Day of Week and Holiday Calculator"
+           DISPLAY "================================================"
+           DISPLAY " "
+           DISPLAY "This application can:"
+           DISPLAY "1. Calculate day of week for any date"
+           DISPLAY "2. Check if a date is a holiday"
+           DISPLAY "3. Show current date information"
+           DISPLAY " ".
+           
+       MAIN-MENU-LOOP.
+           PERFORM UNTIL WS-CONTINUE-FLAG = 'N'
+               PERFORM DISPLAY-MENU
+               PERFORM GET-MENU-CHOICE
+               PERFORM PROCESS-MENU-CHOICE
+           END-PERFORM.
+           
+       DISPLAY-MENU.
+           DISPLAY " "
+           DISPLAY "================================================"
+           DISPLAY "                 MAIN MENU"
+           DISPLAY "================================================"
+           DISPLAY "1. Check specific date"
+           DISPLAY "2. Check current date"
+           DISPLAY "3. Check Canada Day for a year"
+           DISPLAY "4. List upcoming holidays"
+           DISPLAY "Q. Quit"
+           DISPLAY " "
+           DISPLAY "Enter your choice: ".
+           
+       GET-MENU-CHOICE.
+           ACCEPT WS-MENU-CHOICE.
+           
+       PROCESS-MENU-CHOICE.
+           EVALUATE WS-MENU-CHOICE
+               WHEN '1'
+                   PERFORM CHECK-SPECIFIC-DATE
+               WHEN '2'
+                   PERFORM CHECK-CURRENT-DATE
+               WHEN '3'
+                   PERFORM CHECK-CANADA-DAY-YEAR
+               WHEN '4'
+                   PERFORM LIST-HOLIDAYS
+               WHEN 'Q' OR 'q'
+                   MOVE 'N' TO WS-CONTINUE-FLAG
+               WHEN OTHER
+                   DISPLAY "Invalid choice. Please try again."
+           END-EVALUATE.
+           
+       CHECK-SPECIFIC-DATE.
+           DISPLAY " "
+           DISPLAY "Enter date to check:"
+           
+           DISPLAY "Year (1600-3000): "
+           ACCEPT WS-INPUT-YEAR
+           
+           DISPLAY "Month (1-12): "
+           ACCEPT WS-INPUT-MONTH
+           
+           DISPLAY "Day (1-31): "
+           ACCEPT WS-INPUT-DAY
+           
+           CALL "CALENDAR" USING WS-INPUT-DATE, WS-CALENDAR-OUTPUT
+           
+           PERFORM DISPLAY-DATE-RESULTS.
+           
+       CHECK-CURRENT-DATE.
+           ACCEPT WS-SYSTEM-DATE FROM DATE YYYYMMDD
+           
+           DIVIDE WS-SYSTEM-DATE BY 10000 GIVING WS-INPUT-YEAR
+           COMPUTE WS-INPUT-MONTH = 
+               FUNCTION MOD(WS-SYSTEM-DATE, 10000) / 100
+           COMPUTE WS-INPUT-DAY = FUNCTION MOD(WS-SYSTEM-DATE, 100)
+           
+           CALL "CALENDAR" USING WS-INPUT-DATE, WS-CALENDAR-OUTPUT
+           
+           DISPLAY " "
+           DISPLAY "Current Date Information:"
+           PERFORM DISPLAY-DATE-RESULTS.
+           
+       CHECK-CANADA-DAY-YEAR.
+           DISPLAY " "
+           DISPLAY "Enter year to check Canada Day: "
+           ACCEPT WS-INPUT-YEAR
+           
+           MOVE 07 TO WS-INPUT-MONTH
+           MOVE 01 TO WS-INPUT-DAY
+           
+           CALL "CALENDAR" USING WS-INPUT-DATE, WS-CALENDAR-OUTPUT
+           
+           DISPLAY " "
+           IF WS-OUT-ERROR-FLAG = 'N' THEN
+               DISPLAY "Canada Day " WS-INPUT-YEAR " falls on a " 
+                       WS-OUT-DAY-NAME
+               IF WS-OUT-DAY-NAME = "Saturday " OR 
+                  WS-OUT-DAY-NAME = "Sunday   " THEN
+                   DISPLAY "Great! Canada Day is on a weekend!"
+               ELSE
+                   DISPLAY "Canada Day is on a weekday - "
+                           "long weekend opportunity!"
+               END-IF
+           ELSE
+               DISPLAY "Error: " WS-OUT-ERROR-MSG
+           END-IF.
+           
+       LIST-HOLIDAYS.
+           DISPLAY " "
+           DISPLAY "================================================"
+           DISPLAY "            SUPPORTED HOLIDAYS"
+           DISPLAY "================================================"
+           
+      * Show New Year's Day for current year
+           ACCEPT WS-SYSTEM-DATE FROM DATE YYYYMMDD
+           DIVIDE WS-SYSTEM-DATE BY 10000 GIVING WS-INPUT-YEAR
+           
+           MOVE 01 TO WS-INPUT-MONTH
+           MOVE 01 TO WS-INPUT-DAY
+           CALL "CALENDAR" USING WS-INPUT-DATE, WS-CALENDAR-OUTPUT
+           
+           DISPLAY "New Year's Day " WS-INPUT-YEAR ": " WS-OUT-DAY-NAME
+           
+      * Show Canada Day for current year
+           MOVE 07 TO WS-INPUT-MONTH
+           MOVE 01 TO WS-INPUT-DAY
+           CALL "CALENDAR" USING WS-INPUT-DATE, WS-CALENDAR-OUTPUT
+           
+           DISPLAY "Canada Day " WS-INPUT-YEAR ": " WS-OUT-DAY-NAME
+           
+      * Show Christmas for current year
+           MOVE 12 TO WS-INPUT-MONTH
+           MOVE 25 TO WS-INPUT-DAY
+           CALL "CALENDAR" USING WS-INPUT-DATE, WS-CALENDAR-OUTPUT
+           
+           DISPLAY "Christmas Day " WS-INPUT-YEAR ": " WS-OUT-DAY-NAME
+           DISPLAY " "
+           DISPLAY "Note: More holidays can be added to the system".
+           
+       DISPLAY-DATE-RESULTS.
+           IF WS-OUT-ERROR-FLAG = 'Y' THEN
+               DISPLAY "Error: " WS-OUT-ERROR-MSG
+           ELSE
+               DISPLAY " "
+               DISPLAY "================================================"
+               STRING WS-INPUT-MONTH "/" WS-INPUT-DAY "/" WS-INPUT-YEAR
+                      DELIMITED BY SIZE INTO WS-FORMATTED-DATE
+               END-STRING
+               DISPLAY "Date: " WS-FORMATTED-DATE
+               DISPLAY "Day of Week: " WS-OUT-DAY-NAME
+               
+               IF WS-OUT-IS-HOLIDAY = 'Y' THEN
+                   DISPLAY "Holiday: " WS-OUT-HOLIDAY
+                   DISPLAY "*** This is a recognized holiday! ***"
+               ELSE
+                   DISPLAY "Not a recognized holiday"
+               END-IF
+               
+               DISPLAY "================================================"
+           END-IF.
+           
+       DISPLAY-GOODBYE.
+           DISPLAY " "
+           DISPLAY "================================================"
+           DISPLAY "      Thank you for using Calendar App!"
+           DISPLAY "================================================".

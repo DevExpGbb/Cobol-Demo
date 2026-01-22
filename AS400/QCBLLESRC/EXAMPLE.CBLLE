@@ -1,0 +1,70 @@
+      ******************************************************************
+      * Author: Copilot AI Assistant
+      * Date: 2025-01-21
+      * Purpose: Simple Example using Calendar Subroutine
+      * Description: Demonstrates basic usage of the CALENDAR function
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. EXAMPLE.
+       
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * Input date structure
+       01 WS-DATE-INPUT.
+          05 WS-YEAR           PIC 9(4) VALUE 2025.
+          05 WS-MONTH          PIC 99   VALUE 07.
+          05 WS-DAY            PIC 99   VALUE 01.
+          
+      * Output from calendar subroutine
+       01 WS-CALENDAR-RESULT.
+          05 WS-DAY-NAME       PIC X(9).
+          05 WS-HOLIDAY-NAME   PIC X(20).
+          05 WS-IS-HOLIDAY     PIC X(1).
+          05 WS-ERROR-FLAG     PIC X(1).
+          05 WS-ERROR-MESSAGE  PIC X(50).
+          
+       PROCEDURE DIVISION.
+       MAIN-PROCEDURE.
+           DISPLAY "Calendar Subroutine Example"
+           DISPLAY "=========================="
+           DISPLAY " "
+           
+      * Test Canada Day 2025
+           DISPLAY "Checking Canada Day 2025..."
+           CALL "CALENDAR" USING WS-DATE-INPUT, WS-CALENDAR-RESULT
+           
+           IF WS-ERROR-FLAG = 'N' THEN
+               DISPLAY "Date: July 1, 2025"
+               DISPLAY "Day of Week: " WS-DAY-NAME
+               IF WS-IS-HOLIDAY = 'Y' THEN
+                   DISPLAY "Holiday: " WS-HOLIDAY-NAME
+               ELSE
+                   DISPLAY "Not a holiday"
+               END-IF
+           ELSE
+               DISPLAY "Error: " WS-ERROR-MESSAGE
+           END-IF
+           
+           DISPLAY " "
+           
+      * Test a regular day
+           MOVE 15 TO WS-DAY
+           DISPLAY "Checking July 15, 2025..."
+           CALL "CALENDAR" USING WS-DATE-INPUT, WS-CALENDAR-RESULT
+           
+           IF WS-ERROR-FLAG = 'N' THEN
+               DISPLAY "Date: July 15, 2025"
+               DISPLAY "Day of Week: " WS-DAY-NAME
+               IF WS-IS-HOLIDAY = 'Y' THEN
+                   DISPLAY "Holiday: " WS-HOLIDAY-NAME
+               ELSE
+                   DISPLAY "Not a holiday"
+               END-IF
+           ELSE
+               DISPLAY "Error: " WS-ERROR-MESSAGE
+           END-IF
+           
+           DISPLAY " "
+           DISPLAY "Example completed."
+           
+           STOP RUN.
