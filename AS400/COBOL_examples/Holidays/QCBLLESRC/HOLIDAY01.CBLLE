@@ -1,0 +1,435 @@
+*================================================================
+      * Program: HOLIDAY01 - Holiday Tracking Program
+      * Purpose: Determines what day of the year holidays fall on
+      *          for tax calculations (past, present or future)
+      * Author: Development Team
+      * Date: September 25, 2025
+      *================================================================
+       IDENTIFICATION DIVISION.
+         PROGRAM-ID. HOLIDAY01.
+         AUTHOR. Development Team.
+         DATE-WRITTEN. September 25, 2025.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+         DECIMAL-POINT IS COMMA.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+
+      *=Input fields from user========================================
+       01 WS-INPUT-YEAR          PIC 9(4) VALUE ZEROS.
+       01 WS-INPUT-YEAR-DISPLAY  PIC Z(4).
+       01 WS-HOLIDAY-CHOICE      PIC 9(2) VALUE ZEROS.
+
+      *=Date calculation fields=======================================
+       01 WS-HOLIDAY-DATE.
+          05 WS-YEAR             PIC 9(4).
+          05 WS-MONTH            PIC 9(2).
+          05 WS-DAY              PIC 9(2).
+
+      *=Day of week and day of year calculation fields===============
+       01 WS-DAY-OF-WEEK         PIC 9(1).
+       01 WS-DAY-NAME            PIC X(9).
+       01 WS-DAY-OF-YEAR         PIC 9(3).
+
+      *=Date manipulation fields======================================
+       01 WS-DATE-NUMERIC        PIC 9(8).
+       01 WS-DATE-FORMATTED      PIC X(10).
+       01 WS-JAN-FIRST          PIC 9(8).
+
+      *=Day name table================================================
+       01 WS-DAY-TABLE.
+          05 FILLER              PIC X(9) VALUE 'Sunday   '.
+          05 FILLER              PIC X(9) VALUE 'Monday   '.
+          05 FILLER              PIC X(9) VALUE 'Tuesday  '.
+          05 FILLER              PIC X(9) VALUE 'Wednesday'.
+          05 FILLER              PIC X(9) VALUE 'Thursday '.
+          05 FILLER              PIC X(9) VALUE 'Friday   '.
+          05 FILLER              PIC X(9) VALUE 'Saturday '.
+
+       01 WS-DAY-NAMES REDEFINES WS-DAY-TABLE.
+          05 WS-DAY-ENTRY        PIC X(9) OCCURS 7 TIMES.
+
+      *=Holiday name table============================================
+       01 WS-HOLIDAY-TABLE.
+          05 FILLER              PIC X(25) VALUE 'New Year''s Day          '.
+          05 FILLER              PIC X(25) VALUE 'Good Friday              '.
+          05 FILLER              PIC X(25) VALUE 'Easter Sunday            '.
+          05 FILLER              PIC X(25) VALUE 'Victoria Day             '.
+          05 FILLER              PIC X(25) VALUE 'Canada Day               '.
+          05 FILLER              PIC X(25) VALUE 'Civic Holiday (August)   '.
+          05 FILLER              PIC X(25) VALUE 'Labour Day               '.
+          05 FILLER              PIC X(25) VALUE 'Thanksgiving (Canada)    '.
+          05 FILLER              PIC X(25) VALUE 'Remembrance Day          '.
+          05 FILLER              PIC X(25) VALUE 'Christmas Day            '.
+          05 FILLER              PIC X(25) VALUE 'Boxing Day               '.
+
+       01 WS-HOLIDAY-NAMES REDEFINES WS-HOLIDAY-TABLE.
+          05 WS-HOLIDAY-ENTRY    PIC X(25) OCCURS 11 TIMES.
+
+      *=Easter calculation fields=====================================
+       01 WS-EASTER-WORK.
+          05 WS-A                PIC 9(2).
+          05 WS-B                PIC 9(2).
+          05 WS-C                PIC 9(2).
+          05 WS-D                PIC 9(2).
+          05 WS-E                PIC 9(2).
+          05 WS-F                PIC 9(2).
+          05 WS-G                PIC 9(2).
+          05 WS-H                PIC 9(3).
+          05 WS-I                PIC 9(3).
+          05 WS-K                PIC 9(3).
+          05 WS-L                PIC 9(2).
+          05 WS-M                PIC 9(2).
+          05 WS-N                PIC 9(2).
+          05 WS-P                PIC 9(2).
+
+      *=Error handling and control fields============================
+       01 WS-ERROR-FLAG          PIC X(1) VALUE 'N'.
+       01 WS-CONTINUE-FLAG       PIC X(1) VALUE 'Y'.
+
+      *=Display formatting fields====================================
+       01 WS-DISPLAY-LINE        PIC X(80).
+
+       PROCEDURE DIVISION.
+
+       MAIN-PROCEDURE.
+           DISPLAY ' '.
+           DISPLAY '================================================'.
+           DISPLAY '        HOLIDAY TRACKING PROGRAM'.
+           DISPLAY '    For Tax Calculations and Planning'.
+           DISPLAY '================================================'.
+           DISPLAY ' '.
+
+           PERFORM UNTIL WS-CONTINUE-FLAG = 'N'
+               PERFORM GET-YEAR-INPUT
+               IF WS-ERROR-FLAG = 'N'
+                   PERFORM SELECT-HOLIDAY
+                   IF WS-ERROR-FLAG = 'N'
+                       PERFORM CALCULATE-HOLIDAY
+                       PERFORM DISPLAY-RESULT
+                   END-IF
+               END-IF
+               PERFORM ASK-CONTINUE
+           END-PERFORM.
+
+           DISPLAY ' '.
+           DISPLAY 'Thank you for using Holiday Tracking Program!'.
+           GOBACK.
+
+       GET-YEAR-INPUT SECTION.
+           MOVE 'N' TO WS-ERROR-FLAG.
+           DISPLAY ' '.
+           DISPLAY 'Enter a year (1600-3000): ' WITH NO ADVANCING.
+           ACCEPT WS-INPUT-YEAR.
+
+      *=Validate year range===========================================
+           IF WS-INPUT-YEAR < 1600 OR WS-INPUT-YEAR > 3000
+               DISPLAY 'Error: Please enter a year between 1600 and 3000'
+               MOVE 'Y' TO WS-ERROR-FLAG
+           ELSE
+               MOVE WS-INPUT-YEAR TO WS-YEAR
+           END-IF.
+
+       SELECT-HOLIDAY SECTION.
+           MOVE 'N' TO WS-ERROR-FLAG.
+           DISPLAY ' '.
+           DISPLAY 'Select a Canadian holiday:'.
+           DISPLAY ' 1. New Year''s Day (January 1)'.
+           DISPLAY ' 2. Good Friday (Friday before Easter)'.
+           DISPLAY ' 3. Easter Sunday (variable date)'.
+           DISPLAY ' 4. Victoria Day (Monday before May 25)'.
+           DISPLAY ' 5. Canada Day (July 1)'.
+           DISPLAY ' 6. Civic Holiday (1st Monday in August)'.
+           DISPLAY ' 7. Labour Day (1st Monday in September)'.
+           DISPLAY ' 8. Thanksgiving (2nd Monday in October)'.
+           DISPLAY ' 9. Remembrance Day (November 11)'.
+           DISPLAY '10. Christmas Day (December 25)'.
+           DISPLAY '11. Boxing Day (December 26)'.
+           DISPLAY ' '.
+           DISPLAY 'Enter choice (1-11): ' WITH NO ADVANCING.
+           ACCEPT WS-HOLIDAY-CHOICE.
+
+      *=Validate holiday choice=======================================
+           IF WS-HOLIDAY-CHOICE < 1 OR WS-HOLIDAY-CHOICE > 11
+               DISPLAY 'Error: Please enter a number between 1 and 11'
+               MOVE 'Y' TO WS-ERROR-FLAG
+           END-IF.
+
+       CALCULATE-HOLIDAY SECTION.
+           EVALUATE WS-HOLIDAY-CHOICE
+               WHEN 1
+                   PERFORM CALC-NEW-YEARS
+               WHEN 2
+                   PERFORM CALC-GOOD-FRIDAY
+               WHEN 3
+                   PERFORM CALC-EASTER
+               WHEN 4
+                   PERFORM CALC-VICTORIA-DAY
+               WHEN 5
+                   PERFORM CALC-CANADA-DAY
+               WHEN 6
+                   PERFORM CALC-CIVIC-HOLIDAY
+               WHEN 7
+                   PERFORM CALC-LABOUR-DAY
+               WHEN 8
+                   PERFORM CALC-THANKSGIVING
+               WHEN 9
+                   PERFORM CALC-REMEMBRANCE-DAY
+               WHEN 10
+                   PERFORM CALC-CHRISTMAS
+               WHEN 11
+                   PERFORM CALC-BOXING-DAY
+           END-EVALUATE.
+
+       CALC-NEW-YEARS SECTION.
+           MOVE 01 TO WS-MONTH.
+           MOVE 01 TO WS-DAY.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-EASTER SECTION.
+      *=Calculate Easter using Gregorian calendar algorithm===========
+           COMPUTE WS-A = FUNCTION MOD(WS-YEAR, 19).
+           COMPUTE WS-B = WS-YEAR / 100.
+           COMPUTE WS-C = FUNCTION MOD(WS-YEAR, 100).
+           COMPUTE WS-D = WS-B / 4.
+           COMPUTE WS-E = FUNCTION MOD(WS-B, 4).
+           COMPUTE WS-F = (WS-B + 8) / 25.
+           COMPUTE WS-G = (WS-B - WS-F + 1) / 3.
+           COMPUTE WS-H = FUNCTION MOD((19 * WS-A + WS-B - WS-D - WS-G + 15), 30).
+           COMPUTE WS-I = WS-C / 4.
+           COMPUTE WS-K = FUNCTION MOD(WS-C, 4).
+           COMPUTE WS-L = FUNCTION MOD((32 + 2 * WS-E + 2 * WS-I - WS-H - WS-K), 7).
+           COMPUTE WS-M = (WS-A + 11 * WS-H + 22 * WS-L) / 451.
+           COMPUTE WS-N = (WS-H + WS-L - 7 * WS-M + 114) / 31.
+           COMPUTE WS-P = FUNCTION MOD((WS-H + WS-L - 7 * WS-M + 114), 31).
+
+           MOVE WS-N TO WS-MONTH.
+           COMPUTE WS-DAY = WS-P + 1.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-GOOD-FRIDAY SECTION.
+      *=Calculate Easter first, then subtract 2 days=================
+           COMPUTE WS-A = FUNCTION MOD(WS-YEAR, 19).
+           COMPUTE WS-B = WS-YEAR / 100.
+           COMPUTE WS-C = FUNCTION MOD(WS-YEAR, 100).
+           COMPUTE WS-D = WS-B / 4.
+           COMPUTE WS-E = FUNCTION MOD(WS-B, 4).
+           COMPUTE WS-F = (WS-B + 8) / 25.
+           COMPUTE WS-G = (WS-B - WS-F + 1) / 3.
+           COMPUTE WS-H = FUNCTION MOD((19 * WS-A + WS-B - WS-D - WS-G + 15), 30).
+           COMPUTE WS-I = WS-C / 4.
+           COMPUTE WS-K = FUNCTION MOD(WS-C, 4).
+           COMPUTE WS-L = FUNCTION MOD((32 + 2 * WS-E + 2 * WS-I - WS-H - WS-K), 7).
+           COMPUTE WS-M = (WS-A + 11 * WS-H + 22 * WS-L) / 451.
+           COMPUTE WS-N = (WS-H + WS-L - 7 * WS-M + 114) / 31.
+           COMPUTE WS-P = FUNCTION MOD((WS-H + WS-L - 7 * WS-M + 114), 31).
+
+           MOVE WS-N TO WS-MONTH.
+           COMPUTE WS-DAY = WS-P + 1.
+      
+      *=Subtract 2 days to get Good Friday===========================
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+           
+           COMPUTE WS-DATE-NUMERIC = 
+               FUNCTION DATE-OF-INTEGER(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC) - 2).
+           
+           MOVE WS-DATE-NUMERIC(5:2) TO WS-MONTH.
+           MOVE WS-DATE-NUMERIC(7:2) TO WS-DAY.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-VICTORIA-DAY SECTION.
+      *=Monday on or before May 24====================================
+           MOVE 05 TO WS-MONTH.
+           MOVE 24 TO WS-DAY.
+           PERFORM CALC-MONDAY-ON-OR-BEFORE.
+
+       CALC-CIVIC-HOLIDAY SECTION.
+      *=First Monday in August=======================================
+           MOVE 08 TO WS-MONTH.
+           MOVE 01 TO WS-DAY.
+           PERFORM CALC-FIRST-MONDAY.
+
+       CALC-REMEMBRANCE-DAY SECTION.
+           MOVE 11 TO WS-MONTH.
+           MOVE 11 TO WS-DAY.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-CANADA-DAY SECTION.
+           MOVE 07 TO WS-MONTH.
+           MOVE 01 TO WS-DAY.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-LABOUR-DAY SECTION.
+      *=First Monday in September=====================================
+           MOVE 09 TO WS-MONTH.
+           MOVE 01 TO WS-DAY.
+           PERFORM CALC-FIRST-MONDAY.
+
+       CALC-THANKSGIVING SECTION.
+      *=Second Monday in October======================================
+           MOVE 10 TO WS-MONTH.
+           MOVE 01 TO WS-DAY.
+           PERFORM CALC-FIRST-MONDAY.
+           ADD 7 TO WS-DAY.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-CHRISTMAS SECTION.
+           MOVE 12 TO WS-MONTH.
+           MOVE 25 TO WS-DAY.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-BOXING-DAY SECTION.
+           MOVE 12 TO WS-MONTH.
+           MOVE 26 TO WS-DAY.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-FIRST-MONDAY SECTION.
+      *=Find first Monday of the month===============================
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+
+      *=Get day of week for first day of month=======================
+           COMPUTE WS-DAY-OF-WEEK = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+
+      *=Adjust for our table (1=Sunday, 2=Monday, etc.)===============
+           IF WS-DAY-OF-WEEK = 7
+               MOVE 1 TO WS-DAY-OF-WEEK
+           ELSE
+               ADD 1 TO WS-DAY-OF-WEEK
+           END-IF.
+
+      *=Calculate days to add to get to Monday========================
+           IF WS-DAY-OF-WEEK = 2
+               MOVE 01 TO WS-DAY
+           ELSE
+               IF WS-DAY-OF-WEEK = 1
+                   MOVE 02 TO WS-DAY
+               ELSE
+                   COMPUTE WS-DAY = 9 - WS-DAY-OF-WEEK
+               END-IF
+           END-IF.
+
+       CALC-MONDAY-ON-OR-BEFORE SECTION.
+      *=Find Monday on or before the specified date==================
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+
+      *=Get day of week for the specified date=======================
+           COMPUTE WS-DAY-OF-WEEK = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+
+      *=Adjust for our table (1=Sunday, 2=Monday, etc.)===============
+           IF WS-DAY-OF-WEEK = 7
+               MOVE 1 TO WS-DAY-OF-WEEK
+           ELSE
+               ADD 1 TO WS-DAY-OF-WEEK
+           END-IF.
+
+      *=Calculate days to subtract to get to Monday==================
+           IF WS-DAY-OF-WEEK = 2
+      *=Already Monday, keep the day================================
+               CONTINUE
+           ELSE
+               IF WS-DAY-OF-WEEK = 1
+      *=Sunday, go back 6 days to previous Monday===================
+                   SUBTRACT 6 FROM WS-DAY
+               ELSE
+      *=Calculate days back to Monday================================
+                   COMPUTE WS-DAY = WS-DAY - (WS-DAY-OF-WEEK - 2)
+               END-IF
+           END-IF.
+           PERFORM CALC-DAY-DETAILS.
+
+       CALC-DAY-DETAILS SECTION.
+      *=Build date in YYYYMMDD format=================================
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+
+      *=Calculate day of week=========================================
+           COMPUTE WS-DAY-OF-WEEK = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+
+      *=Adjust for our table (1=Sunday, 2=Monday, etc.)===============
+           IF WS-DAY-OF-WEEK = 7
+               MOVE 1 TO WS-DAY-OF-WEEK
+           ELSE
+               ADD 1 TO WS-DAY-OF-WEEK
+           END-IF.
+
+      *=Get day name from table=======================================
+           MOVE WS-DAY-ENTRY(WS-DAY-OF-WEEK) TO WS-DAY-NAME.
+
+      *=Calculate day of year=========================================
+           MOVE WS-YEAR TO WS-JAN-FIRST(1:4).
+           MOVE '0101' TO WS-JAN-FIRST(5:4).
+
+           COMPUTE WS-DAY-OF-YEAR = 
+               FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC) -
+               FUNCTION INTEGER-OF-DATE(WS-JAN-FIRST) + 1.
+
+       DISPLAY-RESULT SECTION.
+           MOVE WS-INPUT-YEAR TO WS-INPUT-YEAR-DISPLAY.
+           
+           DISPLAY ' '.
+           DISPLAY '================================================'.
+           STRING WS-HOLIDAY-ENTRY(WS-HOLIDAY-CHOICE) DELIMITED BY SIZE
+                  ' (' DELIMITED BY SIZE
+                  WS-MONTH DELIMITED BY SIZE
+                  '/' DELIMITED BY SIZE
+                  WS-DAY DELIMITED BY SIZE
+                  '/' DELIMITED BY SIZE
+                  WS-INPUT-YEAR-DISPLAY DELIMITED BY SIZE
+                  ') falls on a ' DELIMITED BY SIZE
+                  WS-DAY-NAME DELIMITED BY SIZE
+                  INTO WS-DISPLAY-LINE
+           END-STRING.
+           DISPLAY WS-DISPLAY-LINE.
+           DISPLAY '================================================'.
+
+      *=Display day of year for tax purposes=========================
+           DISPLAY ' '.
+           DISPLAY 'Tax Information:'.
+           DISPLAY 'Day of year: ' WS-DAY-OF-YEAR.
+
+      *=Display additional information================================
+           DISPLAY ' '.
+           DISPLAY 'Additional Facts:'.
+           IF WS-DAY-NAME = 'Saturday ' OR WS-DAY-NAME = 'Sunday   '
+               DISPLAY '- Holiday falls on a weekend!'
+           ELSE
+               DISPLAY '- Holiday falls on a weekday'
+           END-IF.
+
+           IF WS-DAY-NAME = 'Monday   '
+               DISPLAY '- Creates a long weekend opportunity!'
+           END-IF.
+
+           IF WS-DAY-NAME = 'Friday   '
+               DISPLAY '- Perfect for a long weekend!'
+           END-IF.
+
+       ASK-CONTINUE SECTION.
+           DISPLAY ' '.
+           DISPLAY 'Check another holiday? (Y/N): ' WITH NO ADVANCING.
+           ACCEPT WS-CONTINUE-FLAG.
+           
+           IF WS-CONTINUE-FLAG = 'y' OR WS-CONTINUE-FLAG = 'Y'
+               MOVE 'Y' TO WS-CONTINUE-FLAG
+           ELSE
+               MOVE 'N' TO WS-CONTINUE-FLAG
+           END-IF.
+
+       END PROGRAM HOLIDAY01.
