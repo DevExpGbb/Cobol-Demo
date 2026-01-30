@@ -1,0 +1,316 @@
+*================================================================
+      * Program: HOLYTRK01 - Holiday Tracking Program
+      * Purpose: Calculates US Federal Holidays for any year
+      *          Used for tax calculations and business planning
+      * Author: Development Team
+      * Date: December 3, 2025
+      *================================================================
+       IDENTIFICATION DIVISION.
+         PROGRAM-ID. HOLYTRK01.
+         AUTHOR. Development Team.
+         DATE-WRITTEN. December 3, 2025.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+         DECIMAL-POINT IS COMMA.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+
+      *=Input year from user===========================================
+       01 WS-INPUT-YEAR          PIC 9(4) VALUE ZEROS.
+       01 WS-INPUT-YEAR-DISPLAY  PIC Z(4).
+
+      *=Date calculation fields=======================================
+       01 WS-CALC-DATE.
+          05 WS-YEAR             PIC 9(4).
+          05 WS-MONTH            PIC 9(2).
+          05 WS-DAY              PIC 9(2).
+
+      *=Day of week calculation fields================================
+       01 WS-DAY-OF-WEEK         PIC 9(1).
+       01 WS-DAY-NAME            PIC X(9).
+       01 WS-DAY-OF-YEAR         PIC 9(3).
+
+      *=Date manipulation fields======================================
+       01 WS-DATE-NUMERIC        PIC 9(8).
+       01 WS-JAN-01-DATE         PIC 9(8).
+
+      *=Day name table================================================
+       01 WS-DAY-TABLE.
+          05 FILLER              PIC X(9) VALUE 'Sunday   '.
+          05 FILLER              PIC X(9) VALUE 'Monday   '.
+          05 FILLER              PIC X(9) VALUE 'Tuesday  '.
+          05 FILLER              PIC X(9) VALUE 'Wednesday'.
+          05 FILLER              PIC X(9) VALUE 'Thursday '.
+          05 FILLER              PIC X(9) VALUE 'Friday   '.
+          05 FILLER              PIC X(9) VALUE 'Saturday '.
+
+       01 WS-DAY-NAMES REDEFINES WS-DAY-TABLE.
+          05 WS-DAY-ENTRY        PIC X(9) OCCURS 7 TIMES.
+
+      *=Working fields for calculations===============================
+       01 WS-FIRST-DAY-OF-MONTH  PIC 9(1).
+       01 WS-WEEK-COUNT          PIC 9(1).
+       01 WS-TARGET-DAY          PIC 9(1).
+       01 WS-CALCULATED-DAY      PIC 9(2).
+
+      *=Error handling fields=========================================
+       01 WS-ERROR-FLAG          PIC X(1) VALUE 'N'.
+       01 WS-CONTINUE-FLAG       PIC X(1) VALUE 'Y'.
+
+      *=Display formatting fields====================================
+       01 WS-HOLIDAY-NAME        PIC X(30).
+       01 WS-DATE-DISPLAY        PIC X(15).
+
+       PROCEDURE DIVISION.
+
+       MAIN-PROCEDURE.
+           DISPLAY ' '.
+           DISPLAY '================================================'.
+           DISPLAY '      US FEDERAL HOLIDAY TRACKING SYSTEM'.
+           DISPLAY '        For Tax Calculation Purposes'.
+           DISPLAY '================================================'.
+           DISPLAY ' '.
+
+           PERFORM UNTIL WS-CONTINUE-FLAG = 'N'
+               PERFORM GET-YEAR-INPUT
+               IF WS-ERROR-FLAG = 'N'
+                   PERFORM DISPLAY-ALL-HOLIDAYS
+               END-IF
+               PERFORM ASK-CONTINUE
+           END-PERFORM.
+
+           DISPLAY ' '.
+           DISPLAY 'Thank you for using Holiday Tracking System!'.
+           GOBACK.
+
+       GET-YEAR-INPUT SECTION.
+           MOVE 'N' TO WS-ERROR-FLAG.
+           DISPLAY ' '.
+           DISPLAY 'Enter a year (1600-3000): ' WITH NO ADVANCING.
+           ACCEPT WS-INPUT-YEAR.
+
+      *=Validate year range===========================================
+           IF WS-INPUT-YEAR < 1600 OR WS-INPUT-YEAR > 3000
+               DISPLAY 'Error: Please enter a year between 1600 and 3000'
+               MOVE 'Y' TO WS-ERROR-FLAG
+           ELSE
+               MOVE WS-INPUT-YEAR TO WS-YEAR
+           END-IF.
+
+       DISPLAY-ALL-HOLIDAYS SECTION.
+           MOVE WS-INPUT-YEAR TO WS-INPUT-YEAR-DISPLAY.
+           DISPLAY ' '.
+           DISPLAY '================================================'.
+           DISPLAY 'US FEDERAL HOLIDAYS FOR YEAR ' WS-INPUT-YEAR-DISPLAY.
+           DISPLAY '================================================'.
+           DISPLAY ' '.
+
+      *=New Year's Day (January 1)====================================
+           MOVE 'New Year''s Day' TO WS-HOLIDAY-NAME.
+           MOVE 01 TO WS-MONTH.
+           MOVE 01 TO WS-DAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Martin Luther King Jr. Day (3rd Monday in January)============
+           MOVE 'Martin Luther King Jr. Day' TO WS-HOLIDAY-NAME.
+           MOVE 01 TO WS-MONTH.
+           MOVE 2 TO WS-TARGET-DAY.
+           MOVE 3 TO WS-WEEK-COUNT.
+           PERFORM CALCULATE-NTH-WEEKDAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Presidents' Day (3rd Monday in February)======================
+           MOVE 'Presidents'' Day' TO WS-HOLIDAY-NAME.
+           MOVE 02 TO WS-MONTH.
+           MOVE 2 TO WS-TARGET-DAY.
+           MOVE 3 TO WS-WEEK-COUNT.
+           PERFORM CALCULATE-NTH-WEEKDAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Memorial Day (Last Monday in May)=============================
+           MOVE 'Memorial Day' TO WS-HOLIDAY-NAME.
+           MOVE 05 TO WS-MONTH.
+           MOVE 2 TO WS-TARGET-DAY.
+           PERFORM CALCULATE-LAST-WEEKDAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Independence Day (July 4)=====================================
+           MOVE 'Independence Day' TO WS-HOLIDAY-NAME.
+           MOVE 07 TO WS-MONTH.
+           MOVE 04 TO WS-DAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Labor Day (1st Monday in September)===========================
+           MOVE 'Labor Day' TO WS-HOLIDAY-NAME.
+           MOVE 09 TO WS-MONTH.
+           MOVE 2 TO WS-TARGET-DAY.
+           MOVE 1 TO WS-WEEK-COUNT.
+           PERFORM CALCULATE-NTH-WEEKDAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Columbus Day (2nd Monday in October)===========================
+           MOVE 'Columbus Day' TO WS-HOLIDAY-NAME.
+           MOVE 10 TO WS-MONTH.
+           MOVE 2 TO WS-TARGET-DAY.
+           MOVE 2 TO WS-WEEK-COUNT.
+           PERFORM CALCULATE-NTH-WEEKDAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Veterans Day (November 11)====================================
+           MOVE 'Veterans Day' TO WS-HOLIDAY-NAME.
+           MOVE 11 TO WS-MONTH.
+           MOVE 11 TO WS-DAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Thanksgiving (4th Thursday in November)=======================
+           MOVE 'Thanksgiving Day' TO WS-HOLIDAY-NAME.
+           MOVE 11 TO WS-MONTH.
+           MOVE 5 TO WS-TARGET-DAY.
+           MOVE 4 TO WS-WEEK-COUNT.
+           PERFORM CALCULATE-NTH-WEEKDAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+      *=Christmas Day (December 25)===================================
+           MOVE 'Christmas Day' TO WS-HOLIDAY-NAME.
+           MOVE 12 TO WS-MONTH.
+           MOVE 25 TO WS-DAY.
+           PERFORM CALCULATE-AND-DISPLAY.
+
+       CALCULATE-NTH-WEEKDAY SECTION.
+      *=Calculate the Nth occurrence of a specific weekday in a month=
+      *=WS-TARGET-DAY: 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri, 7=Sat
+      *=WS-WEEK-COUNT: Which occurrence (1st, 2nd, 3rd, etc.)==========
+           
+      *=Get first day of month========================================
+           MOVE 01 TO WS-DAY.
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+           
+           COMPUTE WS-FIRST-DAY-OF-MONTH = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+           
+      *=Calculate which day the Nth occurrence falls on===============
+           IF WS-TARGET-DAY >= WS-FIRST-DAY-OF-MONTH
+               COMPUTE WS-CALCULATED-DAY = 
+                   WS-TARGET-DAY - WS-FIRST-DAY-OF-MONTH + 1 +
+                   ((WS-WEEK-COUNT - 1) * 7)
+           ELSE
+               COMPUTE WS-CALCULATED-DAY = 
+                   WS-TARGET-DAY - WS-FIRST-DAY-OF-MONTH + 8 +
+                   ((WS-WEEK-COUNT - 1) * 7)
+           END-IF.
+           
+           MOVE WS-CALCULATED-DAY TO WS-DAY.
+
+       CALCULATE-LAST-WEEKDAY SECTION.
+      *=Calculate the last occurrence of a specific weekday in a month
+      *=WS-TARGET-DAY: 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri, 7=Sat
+           
+      *=Start with last day of month==================================
+           EVALUATE WS-MONTH
+               WHEN 01 MOVE 31 TO WS-DAY
+               WHEN 02 
+                   IF FUNCTION MOD(WS-YEAR, 4) = 0
+                       IF FUNCTION MOD(WS-YEAR, 100) = 0
+                           IF FUNCTION MOD(WS-YEAR, 400) = 0
+                               MOVE 29 TO WS-DAY
+                           ELSE
+                               MOVE 28 TO WS-DAY
+                           END-IF
+                       ELSE
+                           MOVE 29 TO WS-DAY
+                       END-IF
+                   ELSE
+                       MOVE 28 TO WS-DAY
+                   END-IF
+               WHEN 03 MOVE 31 TO WS-DAY
+               WHEN 04 MOVE 30 TO WS-DAY
+               WHEN 05 MOVE 31 TO WS-DAY
+               WHEN 06 MOVE 30 TO WS-DAY
+               WHEN 07 MOVE 31 TO WS-DAY
+               WHEN 08 MOVE 31 TO WS-DAY
+               WHEN 09 MOVE 30 TO WS-DAY
+               WHEN 10 MOVE 31 TO WS-DAY
+               WHEN 11 MOVE 30 TO WS-DAY
+               WHEN 12 MOVE 31 TO WS-DAY
+           END-EVALUATE.
+           
+      *=Work backwards to find the last occurrence====================
+           PERFORM UNTIL WS-DAY < 1
+               MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4)
+               MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2)
+               MOVE WS-DAY TO WS-DATE-NUMERIC(7:2)
+               
+               COMPUTE WS-FIRST-DAY-OF-MONTH = 
+                   FUNCTION MOD(
+                       FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1
+               
+               IF WS-FIRST-DAY-OF-MONTH = WS-TARGET-DAY
+                   EXIT PERFORM
+               ELSE
+                   SUBTRACT 1 FROM WS-DAY
+               END-IF
+           END-PERFORM.
+
+       CALCULATE-AND-DISPLAY SECTION.
+      *=Build date in YYYYMMDD format=================================
+           MOVE WS-YEAR TO WS-DATE-NUMERIC(1:4).
+           MOVE WS-MONTH TO WS-DATE-NUMERIC(5:2).
+           MOVE WS-DAY TO WS-DATE-NUMERIC(7:2).
+
+      *=Use intrinsic function to get day of week=====================
+      *=1=Monday, 2=Tuesday, ..., 7=Sunday===========================
+           COMPUTE WS-DAY-OF-WEEK = 
+               FUNCTION MOD(
+                   FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC), 7) + 1.
+
+      *=Adjust for our table (1=Sunday, 2=Monday, etc.)===============
+           IF WS-DAY-OF-WEEK = 7
+               MOVE 1 TO WS-DAY-OF-WEEK
+           ELSE
+               ADD 1 TO WS-DAY-OF-WEEK
+           END-IF.
+
+      *=Get day name from table=======================================
+           MOVE WS-DAY-ENTRY(WS-DAY-OF-WEEK) TO WS-DAY-NAME.
+
+      *=Calculate day of year=========================================
+           MOVE WS-YEAR TO WS-JAN-01-DATE(1:4).
+           MOVE 01 TO WS-JAN-01-DATE(5:2).
+           MOVE 01 TO WS-JAN-01-DATE(7:2).
+           
+           COMPUTE WS-DAY-OF-YEAR = 
+               FUNCTION INTEGER-OF-DATE(WS-DATE-NUMERIC) -
+               FUNCTION INTEGER-OF-DATE(WS-JAN-01-DATE) + 1.
+
+      *=Format date display===========================================
+           STRING WS-MONTH DELIMITED BY SIZE
+                  '/' DELIMITED BY SIZE
+                  WS-DAY DELIMITED BY SIZE
+                  '/' DELIMITED BY SIZE
+                  WS-YEAR DELIMITED BY SIZE
+                  INTO WS-DATE-DISPLAY
+           END-STRING.
+
+      *=Display holiday information===================================
+           DISPLAY WS-HOLIDAY-NAME ' - ' WS-DATE-DISPLAY 
+                   ' (' WS-DAY-NAME ') Day ' WS-DAY-OF-YEAR 
+                   ' of year'.
+
+       ASK-CONTINUE SECTION.
+           DISPLAY ' '.
+           DISPLAY 'Check another year? (Y/N): ' WITH NO ADVANCING.
+           ACCEPT WS-CONTINUE-FLAG.
+           
+           IF WS-CONTINUE-FLAG = 'y' OR WS-CONTINUE-FLAG = 'Y'
+               MOVE 'Y' TO WS-CONTINUE-FLAG
+           ELSE
+               MOVE 'N' TO WS-CONTINUE-FLAG
+           END-IF.
+
+       END PROGRAM HOLYTRK01.
