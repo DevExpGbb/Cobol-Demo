@@ -10,12 +10,14 @@ Project COBOL
    * Physical files
    * Logical files
    * Display files
+   * **Calendar Subroutine** - Day of week and holiday detection
    
 ### OpenCOBOL/GNUCobol
    * Hello Cobol
    * Conditions	
    * Database	
    * Date
+   * Calendar functions
    * Games
    * Loops	
    * Memory	

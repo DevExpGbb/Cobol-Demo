@@ -1,0 +1,209 @@
+      ******************************************************************
+      * Author: Copilot AI Assistant
+      * Date: 2025-01-21
+      * Purpose: Calendar Sub Function for COBOL
+      * Description: Determines current day of the week based on year
+      *              and provides holiday identification
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CALENDAR.
+       
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * Constants
+       01 WS-MIN-YEAR          PIC 9(4) VALUE 1600.
+       01 WS-MAX-YEAR          PIC 9(4) VALUE 3000.
+       01 WS-CURRENT-YEAR      PIC 9(4) VALUE ZEROS.
+       01 WS-INPUT-YEAR        PIC 9(4) VALUE ZEROS.
+       01 WS-INPUT-MONTH       PIC 99   VALUE ZEROS.
+       01 WS-INPUT-DAY         PIC 99   VALUE ZEROS.
+       
+      * Working variables for date calculations
+       01 WS-DATE-WORK.
+          05 WS-WORK-YEAR      PIC 9(4).
+          05 WS-WORK-MONTH     PIC 99.
+          05 WS-WORK-DAY       PIC 99.
+          
+       01 WS-DATE-INTEGER      PIC 9(8) VALUE ZEROS.
+       01 WS-DAY-OF-WEEK       PIC 9    VALUE ZEROS.
+       
+      * Day names table
+       01 WS-DAY-NAMES.
+          05 FILLER            PIC X(9) VALUE "Sunday   ".
+          05 FILLER            PIC X(9) VALUE "Monday   ".
+          05 FILLER            PIC X(9) VALUE "Tuesday  ".
+          05 FILLER            PIC X(9) VALUE "Wednesday".
+          05 FILLER            PIC X(9) VALUE "Thursday ".
+          05 FILLER            PIC X(9) VALUE "Friday   ".
+          05 FILLER            PIC X(9) VALUE "Saturday ".
+       01 WS-DAY-TABLE REDEFINES WS-DAY-NAMES.
+          05 WS-DAY-NAME       PIC X(9) OCCURS 7 TIMES.
+          
+      * Holiday definitions
+       01 WS-HOLIDAYS.
+          05 WS-CANADA-DAY.
+             10 WS-CD-MONTH    PIC 99 VALUE 07.
+             10 WS-CD-DAY      PIC 99 VALUE 01.
+          05 WS-NEW-YEAR.
+             10 WS-NY-MONTH    PIC 99 VALUE 01.
+             10 WS-NY-DAY      PIC 99 VALUE 01.
+          05 WS-CHRISTMAS.
+             10 WS-XM-MONTH    PIC 99 VALUE 12.
+             10 WS-XM-DAY      PIC 99 VALUE 25.
+             
+      * Output variables
+       01 WS-RESULT-DAY-NAME   PIC X(9)  VALUE SPACES.
+       01 WS-HOLIDAY-NAME      PIC X(20) VALUE SPACES.
+       01 WS-IS-HOLIDAY        PIC X(1)  VALUE 'N'.
+       
+      * Error handling
+       01 WS-ERROR-FLAG        PIC X(1)  VALUE 'N'.
+       01 WS-ERROR-MESSAGE     PIC X(50) VALUE SPACES.
+       
+      * Control flags
+       01 WS-CONTINUE-FLAG     PIC X(1)  VALUE 'Y'.
+       01 WS-FUNCTION-TYPE     PIC X(1)  VALUE SPACES.
+      *    'D' = Day of week calculation
+      *    'H' = Holiday check
+      *    'C' = Current date analysis
+       
+       LINKAGE SECTION.
+      * Parameters for external calling
+       01 LS-INPUT-DATE.
+          05 LS-YEAR           PIC 9(4).
+          05 LS-MONTH          PIC 99.
+          05 LS-DAY            PIC 99.
+       01 LS-OUTPUT-DATA.
+          05 LS-DAY-NAME       PIC X(9).
+          05 LS-HOLIDAY-NAME   PIC X(20).
+          05 LS-IS-HOLIDAY     PIC X(1).
+          05 LS-ERROR-FLAG     PIC X(1).
+          05 LS-ERROR-MESSAGE  PIC X(50).
+          
+       PROCEDURE DIVISION USING LS-INPUT-DATE, LS-OUTPUT-DATA.
+       MAIN-PROCEDURE.
+           PERFORM INITIALIZE-PROGRAM
+           PERFORM VALIDATE-INPUT-DATE
+           IF WS-ERROR-FLAG = 'N' THEN
+               PERFORM CALCULATE-DAY-OF-WEEK
+               PERFORM CHECK-HOLIDAY
+               PERFORM PREPARE-OUTPUT
+           END-IF
+           PERFORM CLEANUP-PROGRAM
+           GOBACK.
+           
+       INITIALIZE-PROGRAM.
+      * Initialize working storage variables
+           MOVE ZEROS TO WS-DATE-INTEGER
+           MOVE ZEROS TO WS-DAY-OF-WEEK
+           MOVE SPACES TO WS-RESULT-DAY-NAME
+           MOVE SPACES TO WS-HOLIDAY-NAME
+           MOVE 'N' TO WS-IS-HOLIDAY
+           MOVE 'N' TO WS-ERROR-FLAG
+           MOVE SPACES TO WS-ERROR-MESSAGE
+           
+      * Get input from linkage section
+           MOVE LS-YEAR TO WS-INPUT-YEAR
+           MOVE LS-MONTH TO WS-INPUT-MONTH
+           MOVE LS-DAY TO WS-INPUT-DAY.
+           
+       VALIDATE-INPUT-DATE.
+      * Validate year range
+           IF WS-INPUT-YEAR < WS-MIN-YEAR OR 
+              WS-INPUT-YEAR > WS-MAX-YEAR THEN
+               MOVE 'Y' TO WS-ERROR-FLAG
+               STRING "Year must be between " WS-MIN-YEAR 
+                      " and " WS-MAX-YEAR DELIMITED BY SIZE
+                      INTO WS-ERROR-MESSAGE
+               END-STRING
+               EXIT PARAGRAPH
+           END-IF
+           
+      * Validate month
+           IF WS-INPUT-MONTH < 1 OR WS-INPUT-MONTH > 12 THEN
+               MOVE 'Y' TO WS-ERROR-FLAG
+               MOVE "Month must be between 1 and 12" TO WS-ERROR-MESSAGE
+               EXIT PARAGRAPH
+           END-IF
+           
+      * Validate day (basic validation)
+           IF WS-INPUT-DAY < 1 OR WS-INPUT-DAY > 31 THEN
+               MOVE 'Y' TO WS-ERROR-FLAG
+               MOVE "Day must be between 1 and 31" TO WS-ERROR-MESSAGE
+               EXIT PARAGRAPH
+           END-IF
+           
+      * Additional day validation for specific months
+           EVALUATE WS-INPUT-MONTH
+               WHEN 2
+                   IF WS-INPUT-DAY > 29 THEN
+                       MOVE 'Y' TO WS-ERROR-FLAG
+                       MOVE "February cannot have more than 29 days" 
+                            TO WS-ERROR-MESSAGE
+                   END-IF
+               WHEN 4 OR 6 OR 9 OR 11
+                   IF WS-INPUT-DAY > 30 THEN
+                       MOVE 'Y' TO WS-ERROR-FLAG
+                       MOVE "This month cannot have more than 30 days" 
+                            TO WS-ERROR-MESSAGE
+                   END-IF
+           END-EVALUATE.
+           
+       CALCULATE-DAY-OF-WEEK.
+      * Build date for calculation in YYYYMMDD format
+           COMPUTE WS-DATE-INTEGER = WS-INPUT-YEAR * 10000 + 
+                   WS-INPUT-MONTH * 100 + WS-INPUT-DAY
+           
+      * Use COBOL intrinsic function to get integer date
+           COMPUTE WS-DATE-INTEGER = 
+               FUNCTION INTEGER-OF-DATE(WS-DATE-INTEGER)
+               
+      * Calculate day of week (0=Sunday, 1=Monday, etc.)
+           COMPUTE WS-DAY-OF-WEEK = 
+               FUNCTION MOD(WS-DATE-INTEGER, 7)
+           
+      * Adjust for table index (1-based)
+           ADD 1 TO WS-DAY-OF-WEEK
+           
+      * Get day name from table
+           MOVE WS-DAY-NAME(WS-DAY-OF-WEEK) TO WS-RESULT-DAY-NAME.
+           
+       CHECK-HOLIDAY.
+      * Check if the date matches any known holidays
+           MOVE 'N' TO WS-IS-HOLIDAY
+           MOVE SPACES TO WS-HOLIDAY-NAME
+           
+      * Check Canada Day
+           IF WS-INPUT-MONTH = WS-CD-MONTH AND 
+              WS-INPUT-DAY = WS-CD-DAY THEN
+               MOVE 'Y' TO WS-IS-HOLIDAY
+               MOVE "Canada Day" TO WS-HOLIDAY-NAME
+               EXIT PARAGRAPH
+           END-IF
+           
+      * Check New Year's Day
+           IF WS-INPUT-MONTH = WS-NY-MONTH AND 
+              WS-INPUT-DAY = WS-NY-DAY THEN
+               MOVE 'Y' TO WS-IS-HOLIDAY
+               MOVE "New Year's Day" TO WS-HOLIDAY-NAME
+               EXIT PARAGRAPH
+           END-IF
+           
+      * Check Christmas Day
+           IF WS-INPUT-MONTH = WS-XM-MONTH AND 
+              WS-INPUT-DAY = WS-XM-DAY THEN
+               MOVE 'Y' TO WS-IS-HOLIDAY
+               MOVE "Christmas Day" TO WS-HOLIDAY-NAME
+           END-IF.
+           
+       PREPARE-OUTPUT.
+      * Move results to linkage section
+           MOVE WS-RESULT-DAY-NAME TO LS-DAY-NAME
+           MOVE WS-HOLIDAY-NAME TO LS-HOLIDAY-NAME
+           MOVE WS-IS-HOLIDAY TO LS-IS-HOLIDAY
+           MOVE WS-ERROR-FLAG TO LS-ERROR-FLAG
+           MOVE WS-ERROR-MESSAGE TO LS-ERROR-MESSAGE.
+           
+       CLEANUP-PROGRAM.
+      * Cleanup and exit
+           CONTINUE.
